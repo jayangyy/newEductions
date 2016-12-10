@@ -62,11 +62,13 @@
                                                     <span>计划类型：</span>
                                                 </th>
                                                 <td>
-                                                    <select  name="is_yearplan" id="is_yearplan" class="easyui-combobox" label="State:" labelPosition="top" style="width:280px" data-options="editable:false,required:true,onLoadSuccess:planViewModel.yearSuccess">                                             
+                                                    <select  name="is_yearplan" id="is_yearplan" class="easyui-combobox" label="State:" labelPosition="top" style="width:280px" data-options="editable:false,required:true,onLoadSuccess:planViewModel.yearSuccess,onChange:planViewModel.yearChanged">                                             
                                                         <option value="1">临时计划</option>
                                                         <option value="0"> 年度计划</option>
                                                         <option value="2"> 调整计划</option>
-                                                    </select>        
+                                                    </select>  
+                                                    <a id="refectplan" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove'" style="margin-left:10px;display:none;" data-bind="click:selectPlan">选择计划</a>
+                                                    <input type="oplan_code" name="oplan_code" value=""/>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -156,6 +158,9 @@
 
                                                     <select id="plans_post_type" class="easyui-combobox" name="plans_post_type" style="width:200px;" data-options="textField:'text',valueField:'id',required:true,onSelect:postSelected,onLoadSuccess:postOnSuccess">
                                                     </select>
+                                                    <span id="post_type_num"></span>
+                                                    <input type="hidden" id="plan_type_fees" value="plan_type_fees"  value="0"/>
+                                                    <input type="hidden" id="plan_type_code" value="plan_type_code"  value=""/>
                                                 </td>
                                                 <th>
                                                     分配
@@ -170,7 +175,7 @@
                                                     <span>培训类型：</span>
                                                 </th>
                                                 <td>
-                                                    <select  name="plan_card_type" id="plan_card_type" class="easyui-combobox" label="State:" labelPosition="top" style="width:280px" data-options="editable:false,required:true,onLoadSuccess:planViewModel.yearSuccess">                                             
+                                                    <select  name="plan_card_type" id="plan_card_type" class="easyui-combobox" label="State:" labelPosition="top" style="width:280px" data-options="editable:false,required:true,onLoadSuccess:planViewModel.cardSuccess">                                             
                                                         <option value="0">适应性培训</option>
                                                         <option value="1"> 资格性培训</option>
                                                     </select>        
@@ -470,6 +475,12 @@
                             $("#plan_profid").combobox('select', editObj.plan_profid);
                         }
                     },
+                    cardSuccess: function (record) {
+                        if (record)
+                        {
+                            $("#plan_card_type").combobox('select', "1");//培训类型
+                        }
+                    },
                     init: function () {
                         var self = this;
                         $("#plan_unitid").combobox({valueField: 'u_id', textField: 'name', onSelect: planViewModel.planunitSelected, editable: false, required: true, onChange: planViewModel.planuintChange});
@@ -531,6 +542,10 @@
                                         $("#fees_ways").textbox('setValue', data.fees_ways);
                                         $("#total_fees").numberbox('setValue', data.total_fees);
                                         $("#is_yearplan").combobox('select', editObj.is_yearplan);
+                                        $("#plan_old_code").val(data.plan_old_code);//调整计划旧计划ID
+                                        $("#plan_card_type").combobox('select', data.plan_card_type);//培训类型
+                                        $("#plan_type_fees").val(data.plan_type_fees);//当前费用标准
+                                        $("#plan_type_code").val(data.plan_type_code);//当前费用标准 CODE
                                         var overStatus = '${statusEnum}';
                                         self.educlasses(data.educlasses);
                                         self.edureviews(data.edureviews);
@@ -538,7 +553,6 @@
                                         // self.planaddress( data.plan_days);
                                         self.plannums(data.plan_num);
                                         self.plantype(data.traintype);
-
                                         //需盖公章数目
                                         var transarray = [];
                                         var keyarray = [];
@@ -624,6 +638,157 @@
                                 $("#is_yearplan").combobox('select', '0');
                             }
                         }
+                    },
+                    yearChanged: function (oldvalue, newvale) {
+                        if (newvalue == "2")
+                        {
+                            $("#refectplan").linkbutton('enable');
+                        } else
+                        {
+                            $("#refectplan").linkbutton('disable');
+                        }
+                    },
+                    selectPlan: function () {//重新加载老计划数据
+                        var window1 = $('<div/>')
+                        window1.dialog({
+                            title: '移送',
+                            width: 420,
+                            height: 450,
+                            closed: false,
+                            maximizable: true,
+                            cache: false,
+                            href: 'selectPlans',
+                            modal: true,
+                            onClose: function () {
+                                window1.dialog('clear');
+                            },
+                            buttons: [{
+                                    text: '确定',
+                                    handler: function () {
+                                        var users = $("#select_plans_grid").datagrid('getSelections');
+                                        if (users.length == 0)
+                                        {
+                                            return;
+                                        }
+                                        var plan_code = users[0].plan_code;
+                                        $("#plan_old_code").val(plan_code);
+                                        $.getJSON('getPlanInclude?id=' + plan_code, function (data) {
+                                            if (data) {
+                                                editObj = data;
+                                                $("#classno").textbox('setValue', data.classno);
+                                                $("#plan_name").textbox('setValue', data.plan_name);
+                                                $("#plan_type").combobox('select', data.plan_type);
+                                                $("#plan_num").numberbox('setValue', data.plan_num);
+                                                $("#plan_periods").numberbox('setValue', data.plan_periods);
+                                                $("#plan_object").textbox('setValue', data.plan_object);
+                                                $("#plan_cmt").textbox('setValue', data.plan_cmt);
+                                                $("#plan_class").val(data.plan_class);
+                                                $("#plan_sdate").datetimebox('setValue', data.plan_sdate);
+                                                $("#plan_edate").datetimebox('setValue', data.plan_edate);
+                                                $("#plan_days").textbox('setValue', data.plan_days);
+                                                $("#plan_road").textbox('setValue', data.plan_road);
+                                                $("#plan_road_url").val(data.plan_road_url);
+                                                $("#persnum").val(JSON.stringify(data.stas));
+                                                var perarray = [];
+                                                var personnum = 0;
+                                                $.each(data.stas, function (index, item) {
+                                                    perarray.push(item.station_Id);
+                                                    personnum = (item.station_num * 1) + personnum;
+                                                })
+                                                $("#curpernum").text("已提报" + personnum + "人");
+                                                $("#pervals").val(JSON.stringify(perarray));
+                                                $("#traintype").combobox('select', data.traintype);
+                                                $("#plan_profid").combobox('select', editObj.plan_profid);
+                                                $("#fees_ways").textbox('setValue', data.fees_ways);
+                                                $("#total_fees").numberbox('setValue', data.total_fees);
+                                                $("#is_yearplan").combobox('select', editObj.is_yearplan);//年度计划
+                                                $("#plan_card_type").combobox('select', data.plan_card_type);//培训类型
+                                                $("#plan_type_fees").val(data.plan_type_fees);//当前费用标准
+                                                $("#plan_type_code").val(data.plan_type_code);//当前费用标准 CODE
+                                                var overStatus = '${statusEnum}';
+                                                self.educlasses(data.educlasses);
+                                                self.edureviews(data.edureviews);
+                                                self.plandays(data.plan_days);
+                                                self.plannums(data.plan_num);
+                                                self.plantype(data.traintype);
+                                                //需盖公章数目
+                                                var transarray = [];
+                                                var keyarray = [];
+                                                $.each(data.plantranfers, function (inex, item) {
+                                                    if (item.transfer_code == self.$transcode && !('${statusEnum}'.indexOf(item.trans_status) >= 0)) {
+                                                        self.upuser(item.transfer_from_user);
+                                                        self.upuerid(item.transfer_from_idcard);
+                                                        self.upunit(item.transfer_from_unitid);
+                                                        self.upuid(item.transfer_from_unit);
+                                                        $("#transfer").attr('style', 'display:""');
+                                                        $("#transfer1").attr('style', 'display:""');
+                                                        $("#transfer2").attr('style', 'display:""');
+                                                        $("#transfercw").attr('style', 'display:""');
+                                                        $("#class_div").attr('style', 'display:""');
+                                                        $("#auth_div").attr('style', 'display:""');
+                                                        $("#transfer_to").attr('style', 'display:""');
+                                                        $("#transfer_from").attr('style', 'display:""');
+                                                        $("#transfer_back").attr('style', 'display:""');
+                                                    }
+                                                    if (transarray[item.transfer_to_unit] != null) {
+                                                        if (transarray[item.transfer_to_unit].transfer_url.length == 0 && item.transfer_url.length > 0) {
+                                                            transarray[item.transfer_to_unit] = item;
+                                                        }
+                                                    } else {
+                                                        transarray[item.transfer_to_unit] = item;
+                                                        keyarray.push(item.transfer_to_unit);
+                                                    }
+                                                })
+                                                var endarray = [];
+                                                for (var i = 0; i < keyarray.length; i++) {
+                                                    endarray.push(transarray[keyarray[i]]);
+                                                }
+                                                $.each(endarray, function (index, item) {
+                                                    $.each(data.edureviews, function (index, item1) {
+                                                        if (item.transfer_to_unit == item1.current_unit)
+                                                        {
+                                                            if (new Date(item1.review_date) > new Date(item.transfer_date))
+                                                            {
+                                                                item.transfer_date = item1.review_date;
+                                                            }
+                                                        }
+
+                                                    })
+
+                                                })
+                                                self.transfers(endarray);
+                                                if (overStatus.indexOf(data.plan_status) < 0)
+                                                {
+                                                    $("#transfer").attr('style', 'display:""');
+                                                    $("#transfer1").attr('style', 'display:""');
+                                                    $("#transfer2").attr('style', 'display:""');
+                                                    $("#transfercw").attr('style', 'display:""');
+                                                    $("#class_div").attr('style', 'display:""');
+                                                    $("#auth_div").attr('style', 'display:""');
+                                                } else
+                                                {
+                                                    $("#transfer").attr('style', 'display:none"');
+                                                    $("#transfer1").attr('style', 'display:none"');
+                                                    $("#transfer2").attr('style', 'display:none"');
+                                                    $("#transfercw").attr('style', 'display:none');
+                                                    $("#class_div").attr('style', 'display:none"');
+                                                    $("#auth_div").attr('style', 'display:none"');
+                                                }
+                                            }
+                                            window1.dialog('clear');
+                                            window1.dialog('close');
+                                        }).error(function (errMsg) {
+                                            $("#edituserForm").attr('disabled', 'disabled');
+                                        })
+                                    }
+                                }, {
+                                    text: '取消',
+                                    handler: function () {
+                                        window1.dialog('clear');
+                                        window1.dialog('close');
+                                    }
+                                }]
+                        });
                     },
                     executedChange: function (newValue, oldValue) {
                         $("#plan_executeunit").val(newValue);
@@ -979,11 +1144,22 @@
                 if (record) {
                     $("#max_cost").val(record.jn_max_expense * 1.0);
                     var plan_num = $("#plan_num").textbox('getValue');
-                    if (plan_num.length > 0)
+                    if (editObj)
                     {
-                        $("#total_fees").textbox('setValue', record.jn_max_expense * 1.0 * plan_num)
-                    }
 
+                    } else
+                    {
+                        if (plan_num.length > 0)
+                        {
+                            $("#total_fees").textbox('setValue', record.jn_max_expense * 1.0 * plan_num);
+                        } else
+                        {
+                            $("#total_fees").textbox('setValue', "0");
+                        }
+                        $("#plan_type_fees").val(record.jn_max_expense * 1.0);//当前费用标准
+                        $("#plan_type_code").val(record.id);//当前费用标准 CODE
+                    }
+                    $("#post_type_num").text('费用标准:' + record.jn_max_expense + '元');
                 }
             }
             function postOnSuccess(record)
@@ -1004,7 +1180,10 @@
                 if (flag)
                 {
                     var plan_num = $(this).textbox('getValue');
-                    $("#total_fees").textbox('setValue', flag * 1.0 * plan_num);
+                    if (plan_num.length > 0)
+                    {
+                        $("#total_fees").textbox('setValue', flag * 1.0 * plan_num);
+                    }
                 }
             }
             //不能超过定额

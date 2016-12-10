@@ -501,6 +501,27 @@ public class EduPlans {
     }
 //调整计划关联计划号
     private int plan_old_code;
+    //费用标准
+    private BigDecimal plan_type_fees;
+
+    public BigDecimal getPlan_type_fees() {
+        return plan_type_fees;
+    }
+
+    public void setPlan_type_fees(BigDecimal plan_type_fees) {
+        this.plan_type_fees = plan_type_fees;
+    }
+
+    public String getPlan_type_code() {
+        return plan_type_code;
+    }
+
+    public void setPlan_type_code(String plan_type_code) {
+        this.plan_type_code = plan_type_code;
+    }
+    //费用编号
+    private String plan_type_code;
+    
 
     public String getPlan_address() {
         return plan_address;

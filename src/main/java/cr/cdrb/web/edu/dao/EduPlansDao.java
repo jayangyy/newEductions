@@ -55,7 +55,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class EduPlansDao implements IEduPlansDao {
-    
+
     @Resource(name = "db1")
     private DbUtilsPlus db;
     @Autowired
@@ -64,13 +64,13 @@ public class EduPlansDao implements IEduPlansDao {
     private IBaseDao baseDao;
     @Autowired
     private IStaPeronsDao perDao;
-    
+
     @Override
     public Boolean addPlan(EduPlans plan) throws SQLException {
         String plan_code = UUID.randomUUID().toString();
         String insSql = "insert into edu_plans\n"
-                + "  (plan_code, plan_name, plan_num, plan_periods, plan_sdate, plan_edate, plan_object, plan_cmt, plan_type, plan_executeunit, plan_unit, plan_situation, plan_execunitid, plan_unitid, plan_profid, plan_prof, plan_class, plan_status_cmt, plan_status,add_user,plan_days,traintype,plan_road,plan_road_url,plan_highspeed,plan_abroad,plan_gradation,plan_soc_type,is_highspeed,is_personsdb,station_type,station_teaches,station_channel,station_prof,station_line,plan_other_cmt,total_fees,fees_ways,plans_post_type,plan_address,is_yearplan) values\n"
-                + "  ('" + plan_code + "', ?, ?, ?, to_date(?,'yyyy-mm-dd hh24:mi:ss'), to_date(?,'yyyy-mm-dd hh24:mi:ss'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                + "  (plan_code, plan_name, plan_num, plan_periods, plan_sdate, plan_edate, plan_object, plan_cmt, plan_type, plan_executeunit, plan_unit, plan_situation, plan_execunitid, plan_unitid, plan_profid, plan_prof, plan_class, plan_status_cmt, plan_status,add_user,plan_days,traintype,plan_road,plan_road_url,plan_highspeed,plan_abroad,plan_gradation,plan_soc_type,is_highspeed,is_personsdb,station_type,station_teaches,station_channel,station_prof,station_line,plan_other_cmt,total_fees,fees_ways,plans_post_type,plan_address,is_yearplan,plan_old_code,plan_type_fees) values\n"
+                + "  ('" + plan_code + "', ?, ?, ?, to_date(?,'yyyy-mm-dd hh24:mi:ss'), to_date(?,'yyyy-mm-dd hh24:mi:ss'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
         //新增选择站段
         String insSqls = "insert into StationPserons(station_code,station_name,station_Id,station_cmt,plan_code,station_num,plan_name,add_user) values (?,?,?,?,?,?,?,?) ";
@@ -90,13 +90,13 @@ public class EduPlansDao implements IEduPlansDao {
                 params[i][7] = plan.getAdd_user();
                 i++;
             }
-            
+
         }
         Connection conn = db.getConnection();
         try {
             conn.setAutoCommit(false);
             oracle.sql.ROWID rowid = db.insert(insSql, plan.getPlan_name(), plan.getPlan_num(), plan.getPlan_periods(), plan.getPlan_sdate(), plan.getPlan_edate(), plan.getPlan_object(), plan.getPlan_cmt(), plan.getPlan_type(), plan.getPlan_executeunit(), plan.getPlan_unit(), plan.getPlan_situation(), plan.getPlan_execunitid(),
-                    plan.getPlan_unitid(), plan.getPlan_profid(), plan.getPlan_prof(), plan.getPlan_class(), EduReviewSimpleStatus.处室待办.toString(), EduReviewSimpleStatus.处室待办.getStats(), plan.getAdd_user(), plan.getPlan_days(), plan.getTraintype(), plan.getPlan_road(), plan.getPlan_road_url(), plan.getPlan_highspeed(), plan.getPlan_abroad(), plan.getPlan_gradation(), plan.getPlan_soc_type(), plan.getIs_highspeed(), plan.getIs_personsdb(), plan.getStation_type(), plan.getStation_teaches(), plan.getStation_channel(), plan.getStation_prof(), plan.getStation_line(), plan.getPlan_other_cmt(), plan.getTotal_fees(), plan.getFees_ways(), plan.getPlans_post_type(), plan.getPlan_address(), plan.getIs_yearplan());
+                    plan.getPlan_unitid(), plan.getPlan_profid(), plan.getPlan_prof(), plan.getPlan_class(), EduReviewSimpleStatus.处室待办.toString(), EduReviewSimpleStatus.处室待办.getStats(), plan.getAdd_user(), plan.getPlan_days(), plan.getTraintype(), plan.getPlan_road(), plan.getPlan_road_url(), plan.getPlan_highspeed(), plan.getPlan_abroad(), plan.getPlan_gradation(), plan.getPlan_soc_type(), plan.getIs_highspeed(), plan.getIs_personsdb(), plan.getStation_type(), plan.getStation_teaches(), plan.getStation_channel(), plan.getStation_prof(), plan.getStation_line(), plan.getPlan_other_cmt(), plan.getTotal_fees(), plan.getFees_ways(), plan.getPlans_post_type(), plan.getPlan_address(), plan.getIs_yearplan(),plan.setPlan_type_code,plan.getPlan_type_fees);
             db.insertBatch(insSqls, params);
             conn.commit();
             conn.setAutoCommit(true);
@@ -109,10 +109,10 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public Boolean updatePlan(EduPlans plan) throws SQLException {
-        String updateSql = "update edu_plans set plan_name = ?,plan_num = ?,plan_periods = ?,plan_sdate = to_date(?,'yyyy-mm-dd hh24:mi:ss'),plan_edate = to_date(?,'yyyy-mm-dd hh24:mi:ss'), plan_object = ?, plan_cmt = ?, plan_type = ?, plan_executeunit = ?, plan_unit = ?, plan_situation = ?,plan_execunitid = ?, plan_unitid = ?,plan_profid = ?,plan_prof = ?,plan_class = ?,plan_days=?,traintype=?,plan_road=?,plan_road_url=?,plan_highspeed=?,plan_abroad=?,plan_gradation=?,plan_soc_type=?,is_highspeed=?,is_personsdb=?,station_type=?,station_teaches=?,station_channel=?,station_prof=?,station_line=?,plan_other_cmt=?,total_fees=?,fees_ways=?,plans_post_type=?,plan_address=?,is_yearplan=? where plan_code = ?";
+        String updateSql = "update edu_plans set plan_name = ?,plan_num = ?,plan_periods = ?,plan_sdate = to_date(?,'yyyy-mm-dd hh24:mi:ss'),plan_edate = to_date(?,'yyyy-mm-dd hh24:mi:ss'), plan_object = ?, plan_cmt = ?, plan_type = ?, plan_executeunit = ?, plan_unit = ?, plan_situation = ?,plan_execunitid = ?, plan_unitid = ?,plan_profid = ?,plan_prof = ?,plan_class = ?,plan_days=?,traintype=?,plan_road=?,plan_road_url=?,plan_highspeed=?,plan_abroad=?,plan_gradation=?,plan_soc_type=?,is_highspeed=?,is_personsdb=?,station_type=?,station_teaches=?,station_channel=?,station_prof=?,station_line=?,plan_other_cmt=?,total_fees=?,fees_ways=?,plans_post_type=?,plan_address=?,is_yearplan=?,plan_type_fees=?,plan_old_code=? where plan_code = ?";
         //更新站段
         String insSqls = "insert into StationPserons(station_code,station_name,station_Id,station_cmt,plan_code,station_num,plan_name,add_user) values (?,?,?,?,?,?,?,?) ";
         String delSql = "delete from StationPserons where station_code=?";
@@ -125,7 +125,7 @@ public class EduPlansDao implements IEduPlansDao {
         List<StationPersons> dlist = new ArrayList<StationPersons>();
         List<StationPersons> elist = new ArrayList<StationPersons>();//不同对象集合
         List<StationPersons> stas = plan.getStas();
-        List<StationPersons> ostas = perDao.getStaPersons(plan.getPlan_code(),"");
+        List<StationPersons> ostas = perDao.getStaPersons(plan.getPlan_code(), "");
         if (stas.size() > 0) {
             for (StationPersons item : stas) {
                 int o = 0;
@@ -151,7 +151,7 @@ public class EduPlansDao implements IEduPlansDao {
                     if (ulist.contains(item)) {
                         //ulist.add(item);
                     }
-                    
+
                 } else {
                     dlist.add(item);
                 }
@@ -178,7 +178,7 @@ public class EduPlansDao implements IEduPlansDao {
                     params2[k][0] = item.getStation_code();
                     k++;
                 }
-                
+
             }
 //            int l = 0;
 //            if (ulist.size() > 0) {
@@ -205,7 +205,7 @@ public class EduPlansDao implements IEduPlansDao {
                 db.insertBatch(insSqls, params);
             }
             db.update(updateSql, plan.getPlan_name(), plan.getPlan_num(), plan.getPlan_periods(), plan.getPlan_sdate(), plan.getPlan_edate(), plan.getPlan_object(), plan.getPlan_cmt(), plan.getPlan_type(), plan.getPlan_executeunit(), plan.getPlan_unit(), plan.getPlan_situation(), plan.getPlan_execunitid(),
-                    plan.getPlan_unitid(), plan.getPlan_profid(), plan.getPlan_prof(), plan.getPlan_class(), plan.getPlan_days(), plan.getTraintype(), plan.getPlan_road(), plan.getPlan_road_url(), plan.getPlan_highspeed(), plan.getPlan_abroad(), plan.getPlan_gradation(), plan.getPlan_soc_type(), plan.getIs_highspeed(), plan.getIs_personsdb(), plan.getStation_type(), plan.getStation_teaches(), plan.getStation_channel(), plan.getStation_prof(), plan.getStation_line(), plan.getPlan_other_cmt(), plan.getTotal_fees(), plan.getFees_ways(), plan.getPlans_post_type(), plan.getPlan_address(), plan.getIs_yearplan(), plan.getPlan_code());
+                    plan.getPlan_unitid(), plan.getPlan_profid(), plan.getPlan_prof(), plan.getPlan_class(), plan.getPlan_days(), plan.getTraintype(), plan.getPlan_road(), plan.getPlan_road_url(), plan.getPlan_highspeed(), plan.getPlan_abroad(), plan.getPlan_gradation(), plan.getPlan_soc_type(), plan.getIs_highspeed(), plan.getIs_personsdb(), plan.getStation_type(), plan.getStation_teaches(), plan.getStation_channel(), plan.getStation_prof(), plan.getStation_line(), plan.getPlan_other_cmt(), plan.getTotal_fees(), plan.getFees_ways(), plan.getPlans_post_type(), plan.getPlan_address(), plan.getIs_yearplan(), ,plan.getPlan_type_fees,plan.setPlan_type_code,plan.getPlan_code());
             conn.commit();
             conn.setAutoCommit(true);
             return true;
@@ -217,7 +217,7 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public Boolean removePlan(String ids) throws SQLException {
         BigDecimal i = db.queryScalar("select count(plan_code) from edu_plans_reviews where plan_code='" + ids + "'");
@@ -227,7 +227,7 @@ public class EduPlansDao implements IEduPlansDao {
         String removeSql = "delete from edu_plans where plan_code=?";
         return (int) db.update(removeSql, ids) > 0;
     }
-    
+
     @Override
     public Map<Integer, List<EduPlansTransDto>> getPlansPage(EduPlanSearch pageModel) throws Throwable {
         List<Object> list = new ArrayList<Object>();
@@ -243,20 +243,20 @@ public class EduPlansDao implements IEduPlansDao {
                     list.add(pageModel.getTo_unit());
                     if (pageModel.getAdduser() != null) {
                         querySql1 += pageModel.getAdduser().length() > 0 ? " and e.add_user=?)  OR(E.ADD_USER=? " : "";
-                        
+
                         list.add(pageModel.getAdduser());
                         list.add(pageModel.getAdduser());
-                        
+
                     }
                     querySql1 += " )) ";
-                    
+
                 }
                 querySql1 += " and e.PLAN_STATUS!=" + EduReviewSimpleStatus.处室经办.getStats() + " AND e.PLAN_STATUS!=" + EduReviewSimpleStatus.处室废弃.getStats() + " ";
                 querySql1 += " and e.plan_status in (" + EduReviewSimpleStatus.getOfficesAuth() + ")";
             }
             if (pageModel.getIf_union() == 1 || pageModel.getIf_union() == 3) {
                 querySql1 += " union ";
-                
+
             }
             if (pageModel.getIf_union() == 1 || pageModel.getIf_union() == 2 || pageModel.getIf_union() == 3) {
                 querySql1 += " SELECT T1.cost_id,T1.TRANSFER_CODE,E1.* from EDU_PLANS_TRANSFER t1 join edu_plans e1 on t1.plan_code=e1.plan_code   where 1=1 ";
@@ -272,13 +272,13 @@ public class EduPlansDao implements IEduPlansDao {
                     list.add(pageModel.getTo_unit());
                     if (pageModel.getAdduser() != null) {
                         querySql1 += pageModel.getAdduser().length() > 0 ? " and e.add_user=?)  OR(E.ADD_USER=?  " : "";
-                        
+
                         list.add(pageModel.getAdduser());
                         list.add(pageModel.getAdduser());
-                        
+
                     }
                     querySql1 += " )) ";
-                    
+
                 }
                 querySql1 += " and e.plan_status  not in (" + EduReviewSimpleStatus.getOfficesAuth() + ")";
             }
@@ -339,13 +339,13 @@ public class EduPlansDao implements IEduPlansDao {
         pageModel.setParams(list);
         return baseDao.getPageComs(pageModel, EduPlansTransDto.class);
     }
-    
+
     @Override
     public EduPlans getPlanById(String id) throws SQLException {
         String querySql = "select * from edu_plans where plan_code=?";
         return db.queryBean(EduPlans.class, querySql, id);
     }
-    
+
     @Override
     public List<EduPlans> getPlans(Object... params) throws SQLException {
         String querySql = "select * from edu_plans where 1=1 ";
@@ -374,7 +374,7 @@ public class EduPlansDao implements IEduPlansDao {
         }
         return db.queryBeanList(EduPlans.class, querySql, paramArray.toArray());
     }
-    
+
     @Override
     public List<EduProf> getProfs(Object... uids) throws SQLException {
         String profSql = "select * from edu_prof where 1=1";
@@ -387,7 +387,7 @@ public class EduPlansDao implements IEduPlansDao {
         }
         return i > 0 ? db.queryBeanList(EduProf.class, profSql, uids) : db.queryBeanList(EduProf.class, profSql);
     }
-    
+
     @Override
     public EduPlans getPlanInclude(String id) throws SQLException {
         String querySql = "select * from edu_plans where plan_code=?";
@@ -432,7 +432,7 @@ public class EduPlansDao implements IEduPlansDao {
                 params2[i][9] = edureviews.get(i).getTransfer_from_user() + "移送至" + edureviews.get(i).getTransfer_to_user() + edureviews.get(i).getTrans_status_cmt();
                 params2[i][10] = edureviews.get(i).getTransfer_from_unitid();
                 params2[i][11] = edureviews.get(i).getTransfer_from_unit();
-                
+
                 company += edureviews.get(i).getTransfer_to_unit() + edureviews.get(i).getTransfer_to_user() + ",";
             }
         }
@@ -473,7 +473,7 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public Boolean overPlan(EduReviews plan) throws SQLException {
         String insSql = "insert into edu_plans_reviews(review_dcode, plan_code, reviewer, review_status, review_cmt, review_url, plan_status_cmt,review_date)  values\n"
@@ -495,7 +495,7 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public Boolean throwPlan(EduReviews plan) throws SQLException {
         String insSql = "insert into edu_plans_reviews(review_dcode, plan_code, reviewer, review_status, review_cmt, review_url, plan_status_cmt,review_date)  values\n"
@@ -517,21 +517,21 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public Boolean hasPlanLoading(String plan_code) throws SQLException {
         String querySql1 = "SELECT COUNT(1) from EDU_PLANS_TRANSFER where TRANS_STATUS=" + EduReviewSimpleStatus.待办.getStats() + " and plan_code=?";
         BigDecimal countAll = db.queryScalar(1, querySql1, plan_code);
         return Integer.parseInt(countAll.toString()) > 0;
     }
-    
+
     @Override
     public Boolean canRemove(String plan_code) throws SQLException {
         String querySql1 = "SELECT COUNT(1) from EDU_PLANS_TRANSFER T join edu_plans E where  T.plan_code=? and E.TRANS_STATUS!=" + EduReviewSimpleStatus.处室废弃.getStats();
         BigDecimal countAll = db.queryScalar(1, querySql1, plan_code);
         return Integer.parseInt(countAll.toString()) > 0;
     }
-    
+
     @Override
     public Map<Integer, List<EduPlansTransDto>> getTransPlanPage(EduPlanSearch pageModel) throws Throwable {
         String whereSql = " 1=1 ";
@@ -568,7 +568,7 @@ public class EduPlansDao implements IEduPlansDao {
             }
         }
         pageModel.setFilterRules(whereSql);
-        
+
         ISelectBuilder builder = new OracleSelectBuilder()
                 .from(querySql1)
                 .where(pageModel.getFilterRules())
@@ -613,13 +613,13 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public Boolean updaeTransferStatus(EduPlanTransfer transfer) throws SQLException {
         String updateSql = "update edu_plans_transfer set TRANS_STATUS=?,TRANS_STATUS_CMT=?,TRANSFER_URL=? where transfer_code=?";
         return (int) db.update(updateSql, transfer.getTrans_status(), transfer.getTrans_status_cmt(), transfer.getTransfer_url(), transfer.getTransfer_code()) > 0;
     }
-    
+
     @Override
     public Boolean updaePlanStatus(EduPlans plan) throws SQLException {
         String updateSql = "update edu_plans ";
@@ -631,7 +631,7 @@ public class EduPlansDao implements IEduPlansDao {
             return (int) db.update(updateSql, plan.getPlan_status_cmt(), plan.getPlan_code()) > 0;
         }
     }
-    
+
     @Override
     public EduPlanTransfer getTransferById(String code) throws SQLException {
         String querySql = "select * from EDU_PLANS_TRANSFER where transfer_code=?";
@@ -972,7 +972,7 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public EduPlanCost getFinanceInclude(String plan_code, String cost_code) throws SQLException {
         String querySql = "select * from edu_plan_costs where plan_code=? and cost_id=?";
@@ -1058,7 +1058,7 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public Boolean authFinance(EduReviews review, EduPlanCost cost) throws SQLException {
         Connection conn = db.getConnection();
@@ -1169,14 +1169,14 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public List<EduPlanCost> getFinancesByPlan(String plan_code, String cost_satus) throws SQLException {
         String querySql = "select * from edu_plan_costs where plan_code=? and (cost_status=? ";
         querySql += " or cost_status=" + EduReviewSimpleStatus.财务待审.getStats() + ")";
         return db.queryBeanList(EduPlanCost.class, querySql, plan_code, cost_satus);
     }
-    
+
     @Override
     public List<EduPlanCost> getHasFlag(String plan_code) throws SQLException {
         String querySql = "select (CASE when   COUNT(1) is NULL then 0 else COUNT(1)  END)as cost_persons from EDU_PLANS E\n"
@@ -1194,13 +1194,13 @@ public class EduPlansDao implements IEduPlansDao {
                 + "and H.PLAN_CODE=?";
         return db.queryBeanList(EduPlanCost.class, querySql, plan_code, plan_code);
     }
-    
+
     @Override
     public EduPlanCost getPlanCost(String plan_code) throws SQLException {
         String querySql = "select * from edu_plan_costs where cost_id=?";
         return db.queryBean(EduPlanCost.class, querySql, plan_code);
     }
-    
+
     @Override
     public List<EduSocTraintype> getSocTypes(Object... parmas) throws SQLException {
         String querySql = "select * from edu_social_traintype where 1=1 ";
@@ -1222,7 +1222,7 @@ public class EduPlansDao implements IEduPlansDao {
         }
         return db.queryBeanList(EduSocTraintype.class, querySql + whereSql, paramsArray.toArray());
     }
-    
+
     @Override
     public List<EduSocialMainunit> getSocMainunits(Object... parmas) throws SQLException {
         String querySql = "select unit_code,unit_code as u_id,unit_name,unit_name as name from edu_social_mainunit where 1=1 ";
@@ -1244,7 +1244,7 @@ public class EduPlansDao implements IEduPlansDao {
         }
         return db.queryBeanList(EduSocialMainunit.class, querySql + whereSql, paramsArray.toArray());
     }
-    
+
     @Override
     public List<EduSocialExecunit> getSocExecunits(Object... parmas) throws SQLException {
         String querySql = "select exec_code,exec_code as u_id,exec_unit_name,exec_unit_name as name from edu_social_execunit where 1=1 ";
@@ -1266,7 +1266,7 @@ public class EduPlansDao implements IEduPlansDao {
         }
         return db.queryBeanList(EduSocialExecunit.class, querySql + whereSql, paramsArray.toArray());
     }
-    
+
     @Override
     public List<EduHighspeedFlag> getSocHighFlages(Object... parmas) throws SQLException {
         String querySql = "select * from edu_highspeed_flag where 1=1 ";
@@ -1288,7 +1288,7 @@ public class EduPlansDao implements IEduPlansDao {
         }
         return db.queryBeanList(EduHighspeedFlag.class, querySql + whereSql, paramsArray.toArray());
     }
-    
+
     @Override
     public List<EduAbroadType> getAbroadTypes(Object... parmas) throws SQLException {
         String querySql = "select * from edu_abroad_type where 1=1 ";
@@ -1310,7 +1310,7 @@ public class EduPlansDao implements IEduPlansDao {
         }
         return db.queryBeanList(EduAbroadType.class, querySql + whereSql, paramsArray.toArray());
     }
-    
+
     @Override
     public List<EduStationTraintype> getAStatinTtypes(Object... parmas) throws SQLException {
         String querySql = "select * from edu_station_traintype where 1=1 ";
@@ -1332,7 +1332,7 @@ public class EduPlansDao implements IEduPlansDao {
         }
         return db.queryBeanList(EduStationTraintype.class, querySql + whereSql, paramsArray.toArray());
     }
-    
+
     @Override
     public List<EduStationChannel> getStationChannels(Object... parmas) throws SQLException {
         String querySql = "select * from edu_station_channel where 1=1 ";
@@ -1354,7 +1354,7 @@ public class EduPlansDao implements IEduPlansDao {
         }
         return db.queryBeanList(EduStationChannel.class, querySql + whereSql, paramsArray.toArray());
     }
-    
+
     @Override
     public List<EduStationtPersons> getStationPersons(Object... parmas) throws SQLException {
         String querySql = "select * from edu_station_tpersons where 1=1 ";
@@ -1376,7 +1376,7 @@ public class EduPlansDao implements IEduPlansDao {
         }
         return db.queryBeanList(EduStationtPersons.class, querySql + whereSql, paramsArray.toArray());
     }
-    
+
     @Override
     public List<EduTeachesType> getStationTeaches(Object... parmas) throws SQLException {
         String querySql = "select * from edu_teaches_type where 1=1 ";
@@ -1469,7 +1469,7 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public Boolean backTops(List<EduPlansTransDto> plans, EduReviews review, List<EduPlanCost> costlist) throws SQLException {
         String planSql = "update edu_plans set plan_status_cmt=?,plan_status=? where plan_code=?";
@@ -1540,7 +1540,7 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public Boolean bactUsers(List<EduPlansTransDto> plans, List<EduReviews> reviews, List<EduPlanTransfer> transfers) throws SQLException {
         String updateSql = "update edu_plans set plan_status_cmt=? where plan_code=? ";
@@ -1560,7 +1560,7 @@ public class EduPlansDao implements IEduPlansDao {
             for (EduPlans plan : plans) {
                 upArray[k][0] = plan.getPlan_status_cmt();
                 upArray[k][1] = plan.getPlan_code();
-                
+
                 k++;
             }
         } else {
@@ -1610,7 +1610,7 @@ public class EduPlansDao implements IEduPlansDao {
                 j++;
             }
         }
-        
+
         Connection conn = db.getConnection();
         try {
             conn.setAutoCommit(false);
@@ -1634,7 +1634,7 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public Boolean throwPlans(List<EduReviews> plans) throws SQLException {
         String insSql = "insert into edu_plans_reviews(review_dcode, plan_code, reviewer, review_status, review_cmt, review_url, plan_status_cmt,review_date)  values\n"
@@ -1710,7 +1710,7 @@ public class EduPlansDao implements IEduPlansDao {
                 params2[i][10] = transfers.get(i).getTransfer_from_unitid();
                 params2[i][11] = transfers.get(i).getTransfer_from_unit();
                 params2[i][12] = transfers.get(i).getCost_id();
-                
+
             }
         }
         if (review.size() > 0) {
@@ -1755,7 +1755,7 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public Boolean overPlans(List<EduReviews> review) throws SQLException {
         String insSql = "insert into edu_plans_reviews(review_dcode, plan_code, reviewer, review_status, review_cmt, review_url, plan_status_cmt,review_date)  values\n"
@@ -1798,14 +1798,14 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public Boolean hasPlanLoadings(String plancode) throws SQLException {
         String querySql1 = "SELECT COUNT(1) from EDU_PLANS_TRANSFER where TRANS_STATUS=" + EduReviewSimpleStatus.待办.getStats() + " and plan_code in('" + plancode + "')";
         BigDecimal countAll = db.queryScalar(1, querySql1);
         return Integer.parseInt(countAll.toString()) > 0;
     }
-    
+
     @Override
     public List<EduPlanCost> getHasFlags(String plancode, String csid, String recid) throws SQLException {
         String querySql = "select (CASE when   COUNT(1) is NULL then 0 else COUNT(1)  END)as cost_persons from EDU_PLANS E\n"
@@ -1823,7 +1823,7 @@ public class EduPlansDao implements IEduPlansDao {
                 + "and H.PLAN_CODE in (" + plancode + ") ";
         return db.queryBeanList(EduPlanCost.class, querySql);
     }
-    
+
     @Override
     public Boolean transfersBatch(List<EduReviews> review, List<EduPlanTransfer> transfers) throws SQLException {
         String updateSql = "update edu_plans set plan_status_cmt=?,plan_status=? where plan_code=? ";
@@ -1852,7 +1852,7 @@ public class EduPlansDao implements IEduPlansDao {
                 params2[i][10] = transfers.get(i).getTransfer_from_unitid();
                 params2[i][11] = transfers.get(i).getTransfer_from_unit();
                 params2[i][12] = transfers.get(i).getCost_id();
-                
+
             }
         }
         if (review.size() > 0) {
@@ -1895,7 +1895,7 @@ public class EduPlansDao implements IEduPlansDao {
             throw new SQLException(ex.getMessage());
         }
     }
-    
+
     @Override
     public List<EduPlanTransfer> getTransfers(String tids) throws SQLException {
         String querySql = "select * from EDU_PLANS_TRANSFER where 1=1 ";
@@ -1904,10 +1904,122 @@ public class EduPlansDao implements IEduPlansDao {
         }
         return db.queryBeanList(EduPlanTransfer.class, querySql);
     }
-    
+
     @Override
     public BigDecimal getPlanTotals(String tids) throws SQLException {
         String querySql = "select (case when sum(total_cost) is null then 0 else sum(total_cost) end) as total_cost from edu_plan_costs  where plan_code=?";
         return db.queryScalar(1, querySql, tids);
+    }
+
+    @Override
+    public Map<Integer, List<EduPlansTransDto>> getOverOwnPlans(EduPlanSearch pageModel) throws Throwable {
+        List<Object> list = new ArrayList<Object>();
+        String whereSql = " 1=1 ";
+        String querySql1 = "";
+        if (pageModel.getIsAuth() == 1) {
+            //待办    
+            //0：只包含自建立计划，1 ：自建计划+移送计划，2：只包含移送计划
+            if (pageModel.getIf_union() == 0 || pageModel.getIf_union() == 1 || pageModel.getIf_union() == 3) {
+                querySql1 += " SELECT t.cost_id,t.TRANSFER_CODE,e.* from edu_plans e left join (select TRANSFER_CODE,PLAN_CODE,COST_ID from EDU_PLANS_TRANSFER where " + " TRANSFER_TO_UNIT='" + pageModel.getTo_unit() + "' AND TRANSFER_TO_UID='" + pageModel.getTo_uid() + "'  and TRANSFER_TO_USER='" + pageModel.getTo_user() + "' and TRANSFER_TO_IDCARD ='" + pageModel.getTo_idcard() + "' and TRANS_STATUS=" + pageModel.getTrans_status() + " ) t on t.PLAN_CODE=e.PLAN_CODE where 1=1 ";
+                if (pageModel.getTo_unit() != null) {
+                    querySql1 += pageModel.getTo_unit().length() > 0 ? "  and (( E .PLAN_UNIT =?  " : "";
+                    list.add(pageModel.getTo_unit());
+                    if (pageModel.getAdduser() != null) {
+                        querySql1 += pageModel.getAdduser().length() > 0 ? " and e.add_user=?)  OR(E.ADD_USER=? " : "";
+
+                        list.add(pageModel.getAdduser());
+                        list.add(pageModel.getAdduser());
+
+                    }
+                    querySql1 += " )) ";
+
+                }
+                querySql1 += " and e.PLAN_STATUS!=" + EduReviewSimpleStatus.处室经办.getStats() + " AND e.PLAN_STATUS!=" + EduReviewSimpleStatus.处室废弃.getStats() + " ";
+                querySql1 += " and e.plan_status in (" + EduReviewSimpleStatus.getOfficesAuth() + ")";
+            }
+            if (pageModel.getIf_union() == 1 || pageModel.getIf_union() == 3) {
+                querySql1 += " union ";
+
+            }
+            if (pageModel.getIf_union() == 1 || pageModel.getIf_union() == 2 || pageModel.getIf_union() == 3) {
+                querySql1 += " SELECT T1.cost_id,T1.TRANSFER_CODE,E1.* from EDU_PLANS_TRANSFER t1 join edu_plans e1 on t1.plan_code=e1.plan_code   where 1=1 ";
+                querySql1 += " and T1.TRANSFER_TO_UNIT='" + pageModel.getTo_unit() + "' AND T1.TRANSFER_TO_UID='" + pageModel.getTo_uid() + "'  and T1.TRANSFER_TO_USER='" + pageModel.getTo_user() + "' and T1.TRANSFER_TO_IDCARD ='" + pageModel.getTo_idcard() + "' and T1.TRANS_STATUS=" + pageModel.getTrans_status() + " ";
+                querySql1 += " and e1.PLAN_STATUS!=" + EduReviewSimpleStatus.处室经办.getStats() + " AND e1.PLAN_STATUS!=" + EduReviewSimpleStatus.处室废弃.getStats() + " ";
+            }
+        } else if (pageModel.getIsAuth() == 2) {
+            //经办      
+            if (pageModel.getIf_union() == 0 || pageModel.getIf_union() == 1 || pageModel.getIf_union() == 3) {
+                querySql1 += " SELECT e.* from EDU_PLANS e left join (select TRANSFER_CODE,PLAN_CODE,COST_ID from EDU_PLANS_TRANSFER where " + " TRANSFER_TO_UNIT='" + pageModel.getTo_unit() + "' AND TRANSFER_TO_UID='" + pageModel.getTo_uid() + "'  and TRANSFER_TO_USER='" + pageModel.getTo_user() + "' and TRANSFER_TO_IDCARD ='" + pageModel.getTo_idcard() + "' and TRANS_STATUS=" + pageModel.getTrans_status() + ") t on t.PLAN_CODE=e.PLAN_CODE where 1=1 ";
+                if (pageModel.getTo_unit() != null) {
+                    querySql1 += pageModel.getTo_unit().length() > 0 ? "  and (( E .PLAN_UNIT =?  " : "";
+                    list.add(pageModel.getTo_unit());
+                    if (pageModel.getAdduser() != null) {
+                        querySql1 += pageModel.getAdduser().length() > 0 ? " and e.add_user=?)  OR(E.ADD_USER=?  " : "";
+
+                        list.add(pageModel.getAdduser());
+                        list.add(pageModel.getAdduser());
+
+                    }
+                    querySql1 += " )) ";
+
+                }
+                querySql1 += " and e.plan_status  not in (" + EduReviewSimpleStatus.getOfficesAuth() + ")";
+            }
+
+//            if (pageModel.getAdduser() != null) {
+//                querySql1 += pageModel.getAdduser().length() > 0 ? " and e.add_user=?  " : "";
+//                list.add(pageModel.getAdduser());
+//            }
+            if (pageModel.getIf_union() == 1 || pageModel.getIf_union() == 3) {
+                querySql1 += " union ";
+            }
+            if (pageModel.getIf_union() == 1 || pageModel.getIf_union() == 2 || pageModel.getIf_union() == 3) {
+                //包含移送计划
+                //querySql1 += " union ";
+                querySql1 += " SELECT E1.* from EDU_PLANS_TRANSFER t1 ";
+                //  querySql1+=" left join (SELECT DISTINCT PLAN_CODE from EDU_PLANS_TRANSFER where TRANS_STATUS="+EduReviewSimpleStatus.待办.getStats()+" and TRANSFER_TO_UNIT ='"+pageModel.getTo_unit()+"' AND TRANSFER_TO_UID = '"+pageModel.getTo_uid()+"' AND TRANSFER_TO_USER = '"+pageModel.getTo_user()+"' AND TRANSFER_TO_IDCARD = '"+pageModel.getTo_idcard()+"') t2 on t2.PLAN_CODE!=t1.PLAN_CODE";
+                querySql1 += " join EDU_PLANS e1 on t1.plan_code=e1.plan_code   where 1=1 ";
+                querySql1 += " and T1.TRANSFER_TO_UNIT='" + pageModel.getTo_unit() + "' AND T1.TRANSFER_TO_UID='" + pageModel.getTo_uid() + "'  and T1.TRANSFER_TO_USER='" + pageModel.getTo_user() + "' and T1.TRANSFER_TO_IDCARD ='" + pageModel.getTo_idcard() + "' and T1.TRANS_STATUS!=" + pageModel.getTrans_status() + " ";
+                querySql1 += " AND e1.PLAN_STATUS!=" + EduReviewSimpleStatus.处室废弃.getStats() + " ";
+            }
+        }
+        //指定处室
+        if (pageModel.getPlan_mainid() != null) {
+            if (pageModel.getPlan_mainid().length() > 0) {
+                //主办单位
+                whereSql += "  and plan_unit=? ";
+                list.add(pageModel.getPlan_mainid());
+            }
+        }
+        if (pageModel.getPlan_execid() != null) {
+            //主办单位+移送过来
+            if (pageModel.getPlan_execid().length() > 0) {
+                whereSql += " and plan_executeunit=? ";
+                list.add(pageModel.getPlan_execid());
+            }
+        }
+        if (pageModel.getSreviewstatus() != null) {
+            //承办单位
+            if (pageModel.getSreviewstatus().length() > 0) {
+                whereSql += " and plan_status=?";
+                list.add(pageModel.getSreviewstatus());
+            }
+        }
+        if (pageModel.getPlanname() != null) {
+            if (pageModel.getPlanname().length() > 0) {
+                //计划名称
+                whereSql += " and plan_name like '%" + pageModel.getPlanname() + "%'";
+            }
+        }
+        if (pageModel.getFilterRules() != null) {
+            whereSql += "  " + pageModel.getFilterRules();
+        }
+        pageModel.setFilterRules(whereSql);
+        pageModel.setSelects(querySql1);
+        if (pageModel.getParams() != null) {
+            list.addAll(pageModel.getParams());
+        }
+        pageModel.setParams(list);
+        return baseDao.getPageComs(pageModel, EduPlansTransDto.class);
     }
 }

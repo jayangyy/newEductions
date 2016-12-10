@@ -299,6 +299,14 @@ public interface IEduPlansDao {
      * @throws java.sql.SQLException
      */
     public BigDecimal getPlanTotals(String tids) throws SQLException;
-    
+      /**
+     *
+     * 获取拟稿人建立已完结旧计划，供调整计划类型使用
+     *
+     * @param pageModel 分页模型
+     * @return Map<Integer, List<EduPlansTransDto>>
+     * @throws java.sql.SQLException
+     */
+     public Map<Integer, List<EduPlansTransDto>> getOverOwnPlans(EduPlanSearch pageModel) throws Throwable;
 
 }

@@ -127,6 +127,13 @@ public class PlansController {
         return view;
     }
 
+    @RequestMapping(value = "/selectPlans", method = RequestMethod.GET)
+    public ModelAndView selectPlans() {
+        ModelAndView view = new ModelAndView();
+        view.setViewName("/plans/selectPlans");
+        return view;
+    }
+
     @RequestMapping(value = "/selectUser", method = RequestMethod.GET)
     public ModelAndView selectUser() {
         ModelAndView view = new ModelAndView();
