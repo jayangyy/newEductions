@@ -1,0 +1,137 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cr.cdrb.web.edu.dao;
+
+import cr.cdrb.commons.db.DbUtilsPlus;
+import cr.cdrb.commons.db.builder.ISelectBuilder;
+import cr.cdrb.commons.db.builder.OracleSelectBuilder;
+import cr.cdrb.web.edu.daointerface.IEduClassDao;
+import cr.cdrb.web.edu.domains.easyui.QueryModel;
+import cr.cdrb.web.edu.domains.educlass.EduClass;
+import cr.cdrb.web.edu.domains.educlass.EduNewPost;
+import cr.cdrb.web.edu.domains.educlass.EduProf;
+import cr.cdrb.web.edu.domains.educlass.EduTrainingCategory;
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Resource;
+import org.springframework.stereotype.Repository;
+
+/**
+ *
+ * @author Jayang
+ */
+@Repository
+public class EduClassDao implements IEduClassDao {
+
+    @Resource(name = "db1")
+    private DbUtilsPlus db;
+
+    @Override
+    public Boolean addClass(EduClass educlass) throws SQLException {
+        String insStr = "insert into edu_class\n"
+                + "  (id, unit, classno, classname, telldate,startdate, enddate, plandate, signenddate, studentscope, classform, classlevel, prof, classtype, crh, planunit, execunit, departman, projman, refdoc,  classplace, studentnum, newpost, studentdays, classhours, book1, bookfrom1, book2, bookfrom2, book3, bookfrom3, book4, bookfrom4, projreport, archivedate, projplan, selfteach, unitid, planunitid, execunitid, departmanid, projmanid, refdocurl)\n"
+                + "values\n"
+                + "  (edu_class_seq.nextval, ?, ?, ?, to_date(?,'yyyy-mm-dd hh24:mi:ss'), to_date(?,'yyyy-mm-dd hh24:mi:ss'), to_date(?,'yyyy-mm-dd hh24:mi:ss'), to_date(?,'yyyy-mm-dd hh24:mi:ss'), to_date(?,'yyyy-mm-dd hh24:mi:ss'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, to_date(?,'yyyy-mm-dd hh24:mi:ss'), ?, ?, ?, ?, ?, ?, ?, ?)";
+        oracle.sql.ROWID rowid = db.insert(insStr,educlass.getUnit(), educlass.getClassno(), educlass.getClassname(), educlass.getTelldate(), educlass.getStartdate(), educlass.getEnddate(), educlass.getPlandate() == null ? educlass.getPlandate() : educlass.getPlandate(), educlass.getSignenddate(),
+                educlass.getStudentscope(), educlass.getClassform(), educlass.getClasslevel(), educlass.getProf(), educlass.getClasstype(), educlass.getCrh(), educlass.getPlanunit(), educlass.getExecunit(), educlass.getDepartman(), educlass.getProjman(), educlass.getRefdoc(), educlass.getClassplace(), educlass.getStudentnum(), educlass.getNewpost(), educlass.getStudentdays(), educlass.getClasshours(), educlass.getBook1(), educlass.getBookfrom1(), educlass.getBook2(), educlass.getBookfrom2(), educlass.getBook3(), educlass.getBookfrom3(), educlass.getBook4(), educlass.getBookfrom4(), educlass.getProjreport(), educlass.getArchivedate(), educlass.getProjplan(), educlass.getSelfteach(), educlass.getUnitid(), educlass.getPlanunitid(), educlass.getExecunitid(), educlass.getDepartmanid(), educlass.getProjmanid(), educlass.getRefdocurl());
+        return !rowid.isNull();
+    }
+
+    @Override
+    public Boolean updateClass(EduClass educlass) throws SQLException {
+        String updateSql = "UPDATE edu_class SET unit = ?,classno = ?,classname = ?, startdate = to_date(?,'yyyy-mm-dd hh24:mi:ss'),\n"
+                + " enddate = to_date(?,'yyyy-mm-dd hh24:mi:ss'),plandate = to_date(?,'yyyy-mm-dd hh24:mi:ss'),signenddate = to_date(?,'yyyy-mm-dd hh24:mi:ss'),studentscope = ?,classform = ?,classlevel = ?,\n"
+                + " prof = ?,classtype = ?,crh = ?,planunit = ?,execunit = ?,departman = ?,projman = ?,refdoc = ?,\n"
+                + " telldate = to_date(?,'yyyy-mm-dd hh24:mi:ss'),classplace = ?,studentnum = ?,newpost = ?,studentdays = ?,classhours = ?,book1 = ?,\n"
+                + " bookfrom1 = ?,book2 = ?,bookfrom2 = ?,book3 = ?,bookfrom3 = ?,book4 = ?,bookfrom4 = ?,projreport = ?,archivedate = to_date(?,'yyyy-mm-dd hh24:mi:ss'),projplan = ?,selfteach = ?,\n"
+                + " unitid = ?,planunitid = ?,execunitid = ?,departmanid = ?,projmanid = ?,refdocurl = ?\n"
+                + "WHERE\n"
+                + "	ID = ?";
+        return (int) db.update(updateSql, educlass.getUnit(), educlass.getClassno(), educlass.getClassname(), educlass.getStartdate() == null ? educlass.getStartdate() : educlass.getStartdate(), educlass.getEnddate() == null ? educlass.getEnddate() : educlass.getEnddate(), educlass.getPlandate() == null ? educlass.getPlandate() : educlass.getPlandate(), educlass.getSignenddate() == null ? educlass.getSignenddate() : educlass.getSignenddate(),
+                educlass.getStudentscope(), educlass.getClassform(), educlass.getClasslevel(), educlass.getProf(), educlass.getClasstype(), educlass.getCrh(), educlass.getPlanunit(), educlass.getExecunit(), educlass.getDepartman(), educlass.getProjman(), educlass.getRefdoc(), educlass.getTelldate() == null ? educlass.getTelldate() : educlass.getTelldate(), educlass.getClassplace(), educlass.getStudentnum(), educlass.getNewpost(), educlass.getStudentdays(), educlass.getClasshours(), educlass.getBook1(), educlass.getBookfrom1(), educlass.getBook2(), educlass.getBookfrom2(), educlass.getBook3(), educlass.getBookfrom3(), educlass.getBook4(), educlass.getBookfrom4(), educlass.getProjreport(), educlass.getArchivedate(), educlass.getProjplan(), educlass.getSelfteach(), educlass.getUnitid(), educlass.getPlanunitid(), educlass.getExecunitid(), educlass.getDepartmanid(), educlass.getProjmanid(), educlass.getRefdocurl(), educlass.getId()) > 0;
+    }
+
+    @Override
+    public Map<Integer, List<EduClass>> getClassPage(QueryModel pageModel) throws Throwable {
+//        if (pageModel.getSearch() != null && pageModel.getSearch() != "" && !pageModel.getSearch().equalsIgnoreCase("null")) {
+//            String[] params = pageModel.getSearch().split(",");
+//            //单位名称
+//            if (params[0].length() > 0) {
+//                pageModel.setFilterRules("   unit='" + params[0] + "'");
+//            }
+//        }
+        ISelectBuilder builder = new OracleSelectBuilder()
+                .from("select id, unit, classno, classname, startdate, enddate, plandate, signenddate, studentscope, classform, classlevel, prof, classtype, crh, planunit, execunit, departman, projman, refdoc, telldate, classplace, studentnum, newpost, studentdays, classhours, book1, bookfrom1, book2, bookfrom2, book3, bookfrom3, book4, bookfrom4, projreport, archivedate, projplan, selfteach, unitid, planunitid, execunitid, departmanid, projmanid, refdocurl from edu_class")
+                .where(pageModel.getFilterRules())
+                .orderBy(pageModel.getSort() + " " + pageModel.getOrder())
+                .page(pageModel.getPage(), pageModel.getRows());
+
+        String totalSql = builder.total();
+        String querySql = builder.toSql();
+        Map<Integer, List<EduClass>> map = new HashMap<>();
+        BigDecimal total = db.queryScalar(totalSql);
+        map.put(Integer.parseInt(total.toString()), db.queryBeanList(EduClass.class, querySql, new Object[]{}));
+        return map;
+    }
+
+    @Override
+    public List<EduClass> getClassList(String... classIds) throws SQLException {
+        String selSql = "select id, unit, classno, classname, startdate, enddate, plandate, signenddate, studentscope, classform, classlevel, prof, classtype, crh, planunit, execunit, departman, projman, refdoc, telldate, classplace, studentnum, newpost, studentdays, classhours, book1, bookfrom1, book2, bookfrom2, book3, bookfrom3, book4, bookfrom4, projreport, archivedate, projplan, selfteach, unitid, planunitid, execunitid, departmanid, projmanid, refdocurl from edu_class ";
+        if (classIds.length > 0) {
+            selSql += " where id in(?)";
+            return db.queryBeanList(EduClass.class, selSql, classIds);
+        } else {
+            return db.queryBeanList(EduClass.class, selSql);
+        }
+    }
+
+    @Override
+    public Boolean removeClass(String classIds) throws SQLException {
+        String delSql = "delete  from edu_class where id in(?)";
+        return (int) db.update(delSql, classIds) > 0;
+    }
+
+    @Override
+    public EduClass getClassById(Integer classId) throws SQLException {
+        String selSql = "select id, unit, classno, classname, startdate, enddate, plandate, signenddate, studentscope, classform, classlevel, prof, classtype, crh, planunit, execunit, departman, projman, refdoc, telldate, classplace, studentnum, newpost, studentdays, classhours, book1, bookfrom1, book2, bookfrom2, book3, bookfrom3, book4, bookfrom4, projreport, archivedate, projplan, selfteach, unitid, planunitid, execunitid, departmanid, projmanid, refdocurl from edu_class where id=?";
+        return db.queryBean(EduClass.class, selSql, classId);
+    }
+
+    @Override
+    public List<EduProf> getProfs(Object... uids) throws SQLException {
+        String profSql = "select * from edu_prof where 1=1";
+        int i = 0;
+        if (uids.length > 0) {
+            if (uids[0] != null && !uids[0].equals("")) {
+                profSql += " and id=? ";
+                i++;
+            }
+        }
+        return i > 0 ? db.queryBeanList(EduProf.class, profSql, uids) : db.queryBeanList(EduProf.class, profSql);
+    }
+
+    @Override
+    public List<EduTrainingCategory> getTrainnings(Object... uids) throws SQLException {
+        int i = 0;
+        String trainsSql = "select * from \"Edu_Training_Category\"  where 1=1";
+        if (uids.length > 0) {
+            if (uids[0] != null && !uids[0].equals("")) {
+                trainsSql += " and id=?";
+                i++;
+            }
+        }
+        return i > 0 ? db.queryBeanList(EduTrainingCategory.class, trainsSql, uids) : db.queryBeanList(EduTrainingCategory.class, trainsSql);
+    }
+
+    @Override
+    public List<EduNewPost> getNewPosts() throws SQLException {
+        String postSql = "select * from edu_new_post ";
+        return db.queryBeanList(EduNewPost.class, postSql);
+    }
+}

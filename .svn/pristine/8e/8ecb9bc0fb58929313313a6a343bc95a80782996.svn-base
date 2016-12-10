@@ -1,0 +1,26 @@
+<%-- 
+    Document   : editRoles
+    Created on : 2016-8-5, 11:15:31
+    Author     : Jayang
+--%>
+
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>JSP Page</title>
+    </head>
+    <body>
+        <form>
+            <input id="groupRoles" class="easyui-combotree" data-options="label:'选择角色:',labelPosition:'top',multiple:true" style="width:100%">
+            <input type="hidden" name="roleid" id="roleid" />
+        </form>
+        <script type="text/javascript">
+            $(function () {
+                var groupid = $("#ogroupid").val();
+                $("#groupRoles").combotree({url: '${pageContext.request.contextPath}/GetGroupsRoleTree?groupid=' + groupid, method: 'get'})
+            })
+        </script>
+    </body>
+</html>

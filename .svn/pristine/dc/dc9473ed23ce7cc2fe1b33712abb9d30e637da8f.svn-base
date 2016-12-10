@@ -1,0 +1,660 @@
+<HTML> 
+<HEAD> 
+<META http-equiv=Content-Type content="text/html; charset=gb2312">
+<meta name="viewport" content="width=divice-width" />
+<TITLE>铁路岗位培训合格证书</TITLE> 
+<style> 
+ @media print{ 
+ .toolbar{display:none;} 
+ } 
+ .toolbar{border:1px solid #6A9BFA;background:#E8F7E8;} 
+ .paging{page-break-after :always} 
+ table { border-collapse:collapse}
+ td{font-size:14px;color:#000000;} 
+  a{text-decoration:none; color:#000000;}
+
+.STYLE1 {
+	font-size: 48px;
+	font-weight: bold;
+}
+.STYLE4 {font-size: 20px; font-weight: bold;}
+.STYLE6 {font-size: 22px; LINE-HEIGHT: 150%;}
+.STYLE7 {
+	font-size: 28px; font-weight: bold;}
+.STYLE8 {font-size: 16px}
+.STYLE13 {font-size: 13px}
+.STYLE14 {font-size: 14px}
+.STYLE14L {font-size: 14px; LINE-HEIGHT: 150%;}
+.STYLE15 {color: #CCCCCC}
+.STYLE28B {
+	font-size: 28px; font-weight: bold; LINE-HEIGHT: 180%; }
+</style> 
+</head>
+<!-- #Include File="../../inc/Connsql.asp" -->
+
+<body oncontextmenu="return false">
+
+<%
+'if (session("g_name")="" or session("dw_name")="") and request("pw")<>"crenotes4" then
+'	response.Redirect("http://10.192.4.141")
+'	response.End
+'end if
+Set rs= Server.CreateObject ("ADODB.RecordSet")
+str = "select * from S1_职工基本信息 where 编号 = "&Request.QueryString("id")
+rs.Open str,connsql,1,3
+if rs.EOF and rs.BOF then
+	Response.Write("<font style='font-size:24px'>没有职工任何信息</font>")
+	response.End()
+end if
+
+dim cn '身份证号码
+cn = rs("身份证号码")
+Set rs_gt= Server.CreateObject ("ADODB.RecordSet")
+str = " select top 1 B3_学员名册.发证日期 from B3_学员名册,B0_培训班 where 高铁 = 1 and (类别 in ('新职','转岗','晋升')) and B3_学员名册.培训班编号 = B0_培训班.编号 and B3_学员名册.身份证号 = '"&cn&"' and (发证日期<>''or 下令日期<>'' ) order by 发证日期"
+rs_gt.Open str,connsql,1,3
+if not (rs_gt.EOF and rs_gt.BOF) then
+   	is_gt="高"
+	cert_date=rs_gt("发证日期")
+	title="高&nbsp;速&nbsp;铁&nbsp;路&nbsp;岗&nbsp;位&nbsp;培&nbsp;训&nbsp;合&nbsp;格&nbsp;证&nbsp;书&nbsp;（CRH）"
+else
+	Set rs_gt= Server.CreateObject ("ADODB.RecordSet")
+	str = " select *,B3_学员名册.单位 as 单位A from B3_学员名册,B0_培训班 where 类别 in ('新职','转岗','晋升','师带徒') and B3_学员名册.培训班编号 = B0_培训班.编号 and B3_学员名册.身份证号 = '"&cn&"' and 证书编号<>''"
+	rs_gt.Open str,connsql,1,3
+	if not(rs_gt.EOF and rs_gt.BOF) then
+	   	is_gt=""
+		cert_date=rs_gt("发证日期")
+		title="铁&nbsp;&nbsp;路&nbsp;&nbsp;岗&nbsp;&nbsp;位&nbsp;&nbsp;培&nbsp;&nbsp;训&nbsp;&nbsp;合&nbsp;&nbsp;格&nbsp;&nbsp;证&nbsp;&nbsp;书"
+	elseif rtrim(rs("资格证号"))<>"" and rs("本企业聘用日期")<=rs("现工种时间") and rs("现工种时间")<date then
+	   	is_gt=""
+		cert_date=rs("现工种时间")
+		if cert_date<"2007-1-1" then cert_date="2007-12-31"
+		title="铁&nbsp;&nbsp;路&nbsp;&nbsp;岗&nbsp;&nbsp;位&nbsp;&nbsp;培&nbsp;&nbsp;训&nbsp;&nbsp;合&nbsp;&nbsp;格&nbsp;&nbsp;证&nbsp;&nbsp;书"
+	else
+		response.redirect("staff_prn.asp?id="&request("id")&"&pw=crenotes4")   
+		Response.end
+	end if
+end if
+%>
+<table width="720" border="1" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFFFEE" bordercolor="#BBBBBB">
+  <tr align="center" height="45"><td colspan="2"><%=title%></td>
+  </tr>
+  <tr height="450">
+  <td width="360" align="center">
+	  <table width="99%" border="0" cellspacing="0" cellpadding="0" bordercolor="#000000" style="font-size:18px">
+	  <tr height="230"><td align="center">
+	  <img src="/photo/<%=rs("单位")%>/<%=rs("身份证号码")%>.JPG" width="120" height="160" title="照片">
+	  </td></tr>
+	  <tr><td height=32></td></tr>
+	  <tr><td align="center" style="font:楷体_GB2312; font-size:20px" height="35">
+	  		<% if rs("人员来源")<>"劳务派遣" and len(rs("单位"))<10 then response.Write(rs("单位")) else response.Write("发证单位") end if %>（章）</td></tr>
+	  <tr><td align="center" style="font-family:楷体; font-size:22px" height="40"><B></b></td></tr>
+	  <tr><td align="center" style="font-family:楷体; font-size:20px" height="60"><%=is_gt%>培证字第&nbsp;<B><%="14"&right(rs("资格证号"),8)%></B>&nbsp;号</td></tr>
+	  <tr align="center" height="40"><td style="font-family:楷体; font-size:18px">发证日期&nbsp;
+	  <% if year(cert_date)>1950 then 
+	  		response.Write(year(cert_date) & "年" & month(cert_date) & "月" & day(cert_date) & "日")
+		else
+			response.Write("&nbsp;&nbsp;&nbsp;年&nbsp;&nbsp;月&nbsp;&nbsp;日")
+		end if %></td></tr>
+	  <tr><td height=15></td></tr>
+	  </table>
+  </td>
+  <td width="360" align="center">
+  <table width="320" border="0" cellspacing="0" cellpadding="0" bordercolor="#000000">
+	  <tr><td height=32 colspan="2"></td></tr>
+	  <tr height="60">
+	  <td  width="115" align="right" style="font-size:20px;">姓&nbsp;&nbsp;&nbsp;&nbsp;名&nbsp;&nbsp;</td>
+	  <td style="font-family:楷体; font-size:22px;">
+	  	<B><%xm=replace(replace(replace(lcase(rs("姓名")),"a",""),"b",""),"c","")
+			xm=replace(replace(replace(xm,"1",""),"2",""),"3","")
+			if len(xm)<>2 then response.Write(xm) else response.Write(left(xm,1)+"&nbsp;&nbsp;"+right(xm,1)) end if	%></B>
+			&nbsp;&nbsp;<font style="font-family:宋体; font-size:20px;">性别&nbsp;</font><B><%=rs("性别")%></b></td></tr>
+	  <tr height="50">
+	  <td align="right" style="font-size:20px;">出生日期&nbsp;&nbsp;</td>
+	  <td align="left" style="font-family:楷体; font-size:22px;"><B><%=mid(rs("身份证号码"),7,4)&"年"&cint(mid(rs("身份证号码"),11,2))&"月"&cint(mid(rs("身份证号码"),13,2))%>日</B></td></tr>
+	  <tr height="50">
+	  	  <td align="right" style="font-size:20px;">文化程度&nbsp;&nbsp;</td>
+		  <td align="left" style="font-family:楷体; font-size:22px;"><B><%=rs("文化程度")%></B></td></tr>
+	  <tr height="50">
+	  	  <td align="right" style="font-size:20px;">工作单位&nbsp;&nbsp;</td>
+		  <td align="left" style="font-family:楷体; font-size:22px;"><B><%=rs("单位")%></B></td></tr>
+	  <tr height="50">
+	  	  <td align="right" style="font-size:20px;">部&nbsp;&nbsp;&nbsp;&nbsp;门&nbsp;&nbsp;</td><td  style="font-family:楷体; font-size:22px;"><B><%=rs("所在部门")%></B></td></tr>
+	  <tr height="50">
+	  	  <td align="right" style="font-size:20px;">参工时间&nbsp;&nbsp;</td><td  style="font-family:楷体; font-size:22px;"><B><%=year(rs("初次工作日期"))%> 年 <%=month(rs("初次工作日期"))%> 月</B></td></tr>
+	  <tr height="50">
+	  	  <td align="right" style="font-size:20px;"><% if is_gt="高" then response.Write("岗&nbsp; &nbsp;位") else response.Write("职&nbsp; &nbsp; 名") end if %>&nbsp;&nbsp;</td>
+		  <td  style="font-family:楷体; font-size:22px;"><B><%=rs("现任职务")%></B></td></tr>
+	  <tr height="50">
+	  	  <td align="right" style="font-size:20px;">技能等级&nbsp;&nbsp;</td><td style="font-family:楷体; font-size:22px;"><B><%=rs("技术等级")%></B></td></tr>
+	  <tr><td height=15 colspan="2"></td></tr>
+	 </table>
+  </td>
+  </tr>
+</table>  <!-- 基本信息 -->
+<table width="100" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr class='paging' style="font-size:1px"><td>&nbsp;</td></tr>
+  <tr><td style="font-size:1px">&nbsp;</td></tr>
+</table>  <!---- 换页 --->
+
+<table width="720" border="1" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFFFEE"  bordercolor="#DDDDDD"><!--====学历教育经历===-->
+  <tr align="center" height="45"><td colspan="2"><%=title%></td>
+  </tr>
+  <tr height="50" align="center">
+  <td colspan="2" style="font-size:20px">
+
+  	<table width="620" border="0" cellspacing="0" cellpadding="0" align="center">
+	  <tr height="60">
+	  	<td align="center" width="24%" style="font-family:'楷体'; font-size:24px;">专&nbsp;&nbsp;业&nbsp;&nbsp;学&nbsp;&nbsp;历&nbsp;&nbsp;登&nbsp;&nbsp;记</td>
+	  </tr>
+	</table>
+
+  	<table  width="620" border="1" cellspacing="0" cellpadding="0" align="center"  style="font-size:20px;" bordercolor="#555555">
+	  <tr height="50">
+	  	<td align="center" width="24%" style="font-size:20px;">时&nbsp;&nbsp;间</td>
+	  	<td align="center" width="26%"  style="font-size:20px;">学&nbsp;&nbsp;&nbsp;&nbsp;校</td>
+		<td align="center" width="25%"  style="font-size:20px;">专&nbsp;&nbsp;&nbsp;&nbsp;业</td>
+		<td align="center" width="25%"  style="font-size:20px;">毕业证书编号</td> 
+	  </tr>
+	<% 	Set rs1= Server.CreateObject ("ADODB.RecordSet")
+		str = "select * from TZ_06学历教育登记表 where 身份证号码 = '"&cn&"' and 毕业证号<>''"
+		rs1.Open str,connsql,1,3 
+		for i = 1 to 5
+			if not rs1.eof then %>
+				<tr align='center' height='60'>
+				<td style="font-size:16px; line-height:150%" align='left'>&nbsp; &nbsp;&nbsp; &nbsp;<%=year(rs1("入学时间"))&"年"&month(rs1("入学时间"))&"月"%><BR>&nbsp; &nbsp;至 <%=year(rs1("毕业时间"))&"年"&month(rs1("毕业时间"))&"月"%></td>
+				<td style="font-size:16px; line-height:150%"><%=rs1("学校")%></td>
+				<td style="font-size:14px; line-height:150%"><%=rs1("专业")%><BR>（<%=rs1("取得学历")%>）</td>
+				<td><%=rs1("毕业证号")%></td>
+				</tr>
+				<% rs1.movenext
+			elseif i=1 then %>
+				<tr align='center' height='60'>
+				<td></td> <td>&nbsp;<%=rs("毕业学校")%></td> <td>&nbsp;<%=rs("所学专业")%></td> <td>&nbsp;</td></tr>	
+			<% else %>
+				<tr height="60"> <td>&nbsp;</td> <td>&nbsp;</td> <td>&nbsp;</td> <td>&nbsp;</td></tr>	
+		<% end if
+		Next
+		Set rs1 = nothing %>
+	</table>  
+  	<table width="620" border="0" cellspacing="0" cellpadding="0" align="center">
+	  <tr height="30"><td></td></tr>
+	</table>
+  </td></tr>
+</table>  <!---- 学历教育经历 --->
+<table width="100" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr class='paging' style="font-size:1px"><td>&nbsp;</td></tr>
+  <tr><td style="font-size:1px">&nbsp;</td></tr>
+</table>  <!---- 换页 --->
+
+
+
+<!--  ==== 资格性培训合格证BEGIN  === -->
+<% set rs1 = server.CreateObject("ADODB.RecordSet")
+str = "SELECT *,case when 下令日期>'1980-1-1' then 0 else 1 end aa  FROM B3_学员名册 INNER JOIN B0_培训班 ON B3_学员名册.培训班编号 = B0_培训班.编号 INNER JOIN Z_行车工种 ON B0_培训班.新任工种 = Z_行车工种.名称 WHERE (B3_学员名册.身份证号 = '"&cn&"') AND (B0_培训班.类别 IN ('新职','转岗','晋升','师带徒')) AND (((成绩1 like '[9][0-9]%' or 成绩1 like '[1][0-9][0-9]%') and (成绩2 like '[8-9][0-9]%' or 成绩2 like '[1][0-9][0-9]%') and (成绩3 like '[8-9][0-9]%' or 成绩3 like '[1][0-9][0-9]%')) or 发证日期>'1980-1-1' or 下令日期>'1980-1-1') and 结束日期<'"&date&"' order by aa,发证日期,结束日期"
+'response.Write(str)
+rs1.open str,connsql,1,3
+if not (rs1.eof or rs1.bof) then 
+	do while not rs1.eof %>
+		<table width="720" border="1" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFFFEE">
+  <tr align="center" height="45"><td colspan="2"><%=title%></td>
+  </tr>
+  <tr><td colspan="2" background="../../images/line01.jpg" height="1"></td>
+  </tr>
+  <tr height="450">
+  <td width="360" align="center">
+	  <table width="280" border="0" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-size:20px">
+	  <tr height="20"><td align="center"></td></tr>
+	  <tr><td height=82 align="center" style="font-family:楷体; font-size:22px">资格性培训合格证</td></tr>
+	  <tr><td style="font-family:楷体; font-size:20px; line-height:220%" height="135">&nbsp;&nbsp;&nbsp;&nbsp;自 <B>
+	    <% b=1
+		if year(rs1("开始日期"))=year(rs1("发证日期")) then b=6
+'		response.Write(year(rs1("开始日期"))&year(rs1("发证日期")))
+		response.Write(mid(formatdatetime(rs1("开始日期"),1),b)) %></B> 至 <B><% =mid(formatdatetime(rs1("结束日期"),1),b)%></B> 参加 <B>
+		<% if isnull(rs1("学习职名")) or rs1("学习职名")="" then response.Write(rs1("新任工种")) else response.Write(rs1("学习职名")) end if %></B> 任职资格培训，经考试（核）合格，颁发此证。</td></tr>
+	  <tr><td height="60">&nbsp;</td></tr>
+	  <tr><td align="right" style="font-family:楷体; font-size:20px" height="40">
+	  <% if rs1("主要行车工种")="是" then  
+	  		response.Write("成都铁路局考试办")
+			zygzrq=rs1("发证日期")  '用于判断工班长资格盖章单位
+		else 
+			response.Write(rs1("单位")) 
+		end if %>（章）</td></tr>
+	  <tr><td align="right" style="font-family:楷体; font-size:20px" height="40">
+	  	<% 	if year(rs1("发证日期"))>1980 and rs1("发证日期")<=date then
+				response.Write(formatdatetime(rs1("发证日期"),1)) 
+			else
+				response.Write(formatdatetime(rs1("结束日期")+7,1))
+			end if %>
+	  </td></tr>
+	  <tr><td height=15></td></tr>
+	  </table>
+  </td>
+  <td align="center" width="360" style="font-family:'楷体'; font-size:20px"><div style="line-height:160%">培训科目与成绩</div>
+	  <table width="280" border="1" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-family:'宋体'; font-size:18px">
+	  <tr height="40"><td align="center">序<BR>号</td><td align="center">培训科目</td><td align="center">培训<BR>学时</td><td align="center">成绩</td></tr>
+	  <tr height="30" align="center"><td>1</td>
+	  	<td><% 	cpxb=""   '培训班
+				if rs1("培训形式")="师带徒" then cpxb="1"  ' 师徒合同 %>
+			<a href="<%="../Training/pxb"&cpxb&"_print.asp?pxbid="&rs1("培训班编号")%>" title='查看培训班' target="_blank">安全理论培训</a></td>
+	  	<td><% if rs1("学时1")>1 then response.Write(rs1("学时1")) %></td>
+		<td><a <%if rs1("成绩1url")<>"" then response.Write("href='"&rs1("成绩1url")&"' title='查看安全考试卷' target='_blank'") %>><%=rs1("成绩1")%></a></td></tr>
+	  <tr height="30" align="center"><td>2</td>
+	  	<td><a href="<%="../Training/pxb"&cpxb&"_print.asp?pxbid="&rs1("培训班编号")%>" title='查看培训班' target="_blank">专业理论培训</a></td>
+		<td><%=rs1("总课时")%></td>
+		<td><a <%if rs1("成绩2url")<>"" then response.Write("href='"&rs1("成绩2url")&"' title='查看理论及实作考试卷' target='_blank'") end if %>><%=rs1("成绩2")%></a></td></tr>
+	  <tr height="30" align="center"><td>3</td>
+	  	<td><a href="<%="../Training/pxb"&cpxb&"_print.asp?pxbid="&rs1("培训班编号")%>" title='查看培训班' target="_blank">实作技能培训</a></td>
+		<td><% if rs1("学时3")>1 then response.Write(rs1("学时3")) %></td><td><%=rs1("成绩3")%></td></tr>
+	  <% for i= 4 to 10 %>
+	  <tr height="30"><td align="center"><%=i%></td><td align="center"></td><td align="center"></td><td align="center"></td></tr>
+	  <% next %>
+	  </table>
+	<div style="font-family:'宋体'; font-size:14px; line-height:160%;" align="right">
+		<% if rs1("培训班等级")="站段培训" or rs1("培训形式")="师带徒" then response.Write(rs1("单位")) else response.Write(rs1("承办单位")) end if %>（盖章）
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+	<div style="font-family:'宋体'; font-size:14px; line-height:160%;" align="right">
+		<% 	if year(rs1("发证日期"))>1980 and rs1("发证日期")<=date then
+				response.Write(formatdatetime(rs1("发证日期"),1)) 
+			else
+				response.Write("年&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;日")
+			end if %>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+  </td>
+  </tr>
+</table>
+     	<table width="100" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr class='paging' style="font-size:1px"><td>&nbsp;</td></tr>
+  <tr><td style="font-size:1px">&nbsp;</td></tr>
+</table>  <!---- 换页 --->
+	<%	rs1.movenext
+	loop
+else
+	if year(rs("现工种时间"))>1990 then 
+		gzsj=rs("现工种时间")
+	elseif rs("初次工作日期")+365>date then
+		gzsj=rs("初次工作日期")
+	elseif year(rs("初次工作日期"))>1980 then
+		gzsj=rs("初次工作日期")+365
+	elseif year(rs("出生日期"))>1954 then
+		gzsj=rs("出生日期")+365*20
+	else
+		gzsj=cdate("2012-1-1")
+	end if
+	if instr("工人见习生学员",rs("现任职务"))=0 and gzsj<"2013-1-1" then
+		pxsj_b=formatdatetime(gzsj-105,1)
+		pxsj_e=formatdatetime(gzsj-15,1)
+		pxzm=rs("现任职务")
+		pxdw=rs("单位")
+		pxsj=formatdatetime(gzsj,1)
+	else
+		pxsj_b=" &nbsp; &nbsp;月 &nbsp; 日"
+		pxsj_e=pxsj_b
+		pxzm=" &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;"
+		pxdw=""
+		pxsj=" &nbsp; &nbsp; &nbsp; 年"&pxsj_b
+	end if %>
+	<table width="720" border="1" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFFFEE" bordercolor="#BBBBBB">
+  		<tr align="center" height="45"><td colspan="2"><%=title%></td></tr>
+  		<tr height="450">
+		  <td width="360" align="center">
+	  		<table width="280" border="0" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-size:18px">
+	  <tr height="20"><td align="center"></td></tr>
+	  <tr><td height=82 align="center" style="font-family:楷体; font-size:22px">资格性培训合格证</td></tr>
+	  <tr><td style="font-family:楷体_GB2312; font-size:20px; line-height:220%" height="135">&nbsp;&nbsp;&nbsp;&nbsp;自 <B><% =pxsj_b %></B> 至 <B><% =pxsj_e %></B> 参加 <B><% =pxzm %></B> 任职资格培训，经考试（核）合格，颁发此证。</td></tr>
+	  <tr><td align="center" style="font-family:楷体_GB2312; font-size:18px" height="60"> <% if pxdw="" then response.Write("<B>【电子岗培证只显示行车工种任职资格,其它工种以纸质证书为准】</b>") %></td></tr>
+	  <tr><td align="right" style="font-family:楷体_GB2312; font-size:20px" height="40">
+	  <% response.Write(pxdw) %>（章）</td></tr>
+	  <tr><td align="right" style="font-family:楷体_GB2312;font-size:20px" height="40"><B><% =pxsj %></B></td></tr>
+	  <tr><td height=15></td></tr>
+	  </table>
+  </td>
+  <td align="center" width="360" style="font-size:20px"><div style="line-height:160%">培训科目与成绩</div>
+	  <table width="280" border="1" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-size:18px">
+	  <tr height="40"><td align="center">序<BR>号</td><td align="center">培训科目</td><td align="center">培训<BR>学时</td><td align="center">成绩</td></tr>
+	  <% for i= 1 to 10 %>
+	  <tr height="30"><td align="center"><%=i%></td><td></td><td></td><td></td></tr>
+	  <% next %>
+	  </table>
+	<div style="font-size:14px; line-height:160%; width:160px" align="right">培训考核单位（盖章）</div>
+	<div style="font-size:14px; line-height:160%; width:150px" align="right"><% =pxsj %></div>
+  </td>
+  </tr>
+</table>  <!---- 无培训记录任职资格 --->
+   	<table width="100" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr class='paging' style="font-size:1px"><td>&nbsp;</td></tr>
+  <tr><td style="font-size:1px">&nbsp;</td></tr>
+</table>  <!---- 换页 --->
+<%end if%>
+<!--  资格性培训合格证END  -->
+
+<!--  ===== 营业线施工资格性培训合格证BEGIN ===  -->
+<% set rs1 = server.CreateObject("ADODB.RecordSet")
+str = "SELECT * FROM B3_学员名册 INNER JOIN B0_培训班 ON B3_学员名册.培训班编号 = B0_培训班.编号 WHERE (B3_学员名册.身份证号 = '"&cn&"') AND (B0_培训班.类别 = ('新职(营业线施工)')) AND ((成绩2 like '[8-9][0-9]%' or 成绩2 like '[1][0-9][0-9]%') or 发证日期>'1980-1-1') and 结束日期<'"&date&"' order by 发证日期,结束日期"
+' response.Write(str)
+rs1.open str,connsql,1,3
+	do while not rs1.eof %>
+		<table width="720" border="1" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFFFEE" bordercolor="#BBBBBB">
+  <tr align="center" height="45"><td colspan="2"><%=title%></td></tr>
+  <tr height="450">
+  <td width="360" align="center">
+	  <table width="280" border="0" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-size:20px">
+	  <tr height="20"><td align="center"></td></tr>
+	  <tr><td height=82 align="center" style="font-family:楷体; font-size:22px">资格性培训合格证</td></tr>
+	  <tr><td style="font-family:楷体; font-size:20px; line-height:220%" height="135">&nbsp;&nbsp;&nbsp;&nbsp;自 <B>
+	    <% b=1
+		if year(rs1("开始日期"))=year(rs1("发证日期")) then b=6
+		response.Write(mid(formatdatetime(rs1("开始日期"),1),b)) %></B> 至 <B><% =mid(formatdatetime(rs1("结束日期"),1),b)%></B> 参加 <B>营业线施工<% 
+		zizi=""
+		if instr(rs1("学习职名"),"负责人")>0 then zizi="负责人"
+		if instr(rs1("学习职名"),"防护员")>0 then 
+			if zizi<>"" then zizi=zizi+"、"
+			zizi=zizi+"防护员"
+		end if
+		if instr(rs1("学习职名"),"联络员")>0 and instr(zizi,"、")=0  then  ' 最多只能学习两个工种
+			if zizi<>"" then zizi=zizi+"、"
+			zizi=zizi+"联络员"
+		end if
+		if instr(rs1("学习职名"),"安全员")>0 and instr(zizi,"、")=0   then
+			if zizi<>"" then zizi=zizi+"、"
+			zizi=zizi+"安全员"
+		end if
+		if instr(rs1("学习职名"),"带班人员")>0 and instr(zizi,"、")=0 then
+			if zizi<>"" then zizi=zizi+"、"
+			zizi=zizi+"带班人员"
+		end if
+		if zizi<>"" then  ' 没有填写新任工种
+		elseif instr(rs1("培训班名称"),"负责人")>0   then zizi="负责人"
+		elseif instr(rs1("培训班名称"),"防护员")>0   then zizi="防护员"
+		elseif instr(rs1("培训班名称"),"联络员")>0   then zizi="联络员"
+		elseif instr(rs1("培训班名称"),"带班人员")>0 then zizi="带班人员"
+		else
+			zizi="安全员"
+		end if 
+		response.Write(zizi)
+		%>安全</B> 培训，经考试（核）合格，颁发此证。</td></tr>
+	  <tr><td height="60">&nbsp;</td></tr>
+	  <tr><td align="right" style="font-family:楷体; font-size:20px" height="40">成都铁路局考试办（章）</td></tr>
+	  <tr><td align="right" style="font-family:楷体; font-size:20px" height="40">
+	  	<% 	if year(rs1("发证日期"))>1980 and rs1("发证日期")<=date then
+				response.Write(formatdatetime(rs1("发证日期"),1)) 
+			else
+				response.Write(formatdatetime(rs1("结束日期")+7,1))
+			end if %>
+	  </td></tr>
+	  <tr><td height=15></td></tr>
+	  </table>
+  </td>
+  <td align="center" width="360" style="font-family:'楷体'; font-size:20px"><div style="line-height:160%">培训科目与成绩</div>
+	  <table width="280" border="1" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-family:'宋体'; font-size:18px">
+	  <tr height="40"><td align="center">序<BR>号</td><td align="center">培训科目</td><td align="center">培训<BR>学时</td><td align="center">成绩</td></tr>
+	  <tr height="30" align="center"><td>1</td>
+	  	<td><a <%if rs1("成绩2url")<>"" then response.Write("href='"&rs1("成绩2url")&"' title='查看理论及实作考试卷' target='_blank'") %>>营业线施工安全</td>
+		<td><%=rs1("总课时")%></td><td><%=rs1("成绩2")%></td></tr>
+	  <% for i= 2 to 10 %>
+	  <tr height="30"><td align="center"><%=i%></td><td align="center"></td><td align="center"></td><td align="center"></td></tr>
+	  <% next %>
+	  </table>
+	<div style="font-family:'宋体'; font-size:14px; line-height:160%;" align="right">
+		<% if rs1("培训班等级")="站段培训" or rs1("培训形式")="师带徒" then response.Write(rs1("单位")) else response.Write(rs1("承办单位")) end if %>（盖章）
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+	<div style="font-family:'宋体'; font-size:14px; line-height:160%;" align="right">
+		<% 	if year(rs1("发证日期"))>1980 and rs1("发证日期")<=date then
+				response.Write(formatdatetime(rs1("发证日期"),1)) 
+			else
+				response.Write("年&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;日")
+			end if %>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+  </td>
+  </tr>
+</table>
+     	<table width="100" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr class='paging' style="font-size:1px"><td>&nbsp;</td></tr>
+  <tr><td style="font-size:1px">&nbsp;</td></tr>
+</table>  <!---- 换页 --->
+	<%	rs1.movenext
+loop %>
+<!---- 营业线施工资格性培训合格证end --->
+
+
+<% set rs1 = server.CreateObject("ADODB.RecordSet")  ' ==== 工班长任职资格 ===
+str = "SELECT top 1 * FROM B3_学员名册 INNER JOIN B0_培训班 ON B3_学员名册.培训班编号 = B0_培训班.编号 WHERE (B3_学员名册.身份证号 = '"&cn&"') AND (B0_培训班.类别='新职(工班长)' or (B0_培训班.类别='现任工班长' and B3_学员名册.下令日期>'1980-1-1')) order by 类别 desc, 结束日期"
+rs1.open str,connsql,1,3
+if not (rs1.eof and rs1.bof) then  %>
+	<table width="720" border="1" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFFFEE"  bordercolor="#BBBBBB">
+  <tr align="center" height="45"><td colspan="2"><%=title%></td></tr>
+  <tr height="450">
+  <td width="360" align="center">
+	  <table width="260" border="0" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-size:18px">
+	  <tr height="20"><td align="center"></td></tr>
+	  <tr><td height=82 align="center" style="font-family:楷体; font-size:22px">工班长资格培训合格证</td></tr>
+	  <tr><td style="font-family:楷体; font-size:20px; line-height:220%" height="135">&nbsp;&nbsp;&nbsp;&nbsp;自<B>
+	  <% if rs1("类别")="新职(工班长)" then response.Write(formatdatetime(rs1("开始日期"),1)) else response.Write(formatdatetime(cdate(rs1("下令日期"))-13,1)) end if %></B> 至<B>
+	  <% if rs1("类别")="新职(工班长)" then response.Write(formatdatetime(rs1("结束日期"),1)) else response.Write(formatdatetime(cdate(rs1("下令日期"))-7,1)) end if %></B> 参加 <B>工班长任职资格</B> 培训，经考试（核）合格，颁发此证。</td></tr>
+	  <tr><td align="center" height="60"></td></tr>
+	  <tr><td align="right" style="font-family:楷体; font-size:20px" height="40">
+	  <% if zygzrq>"1980-1-1"  then response.Write("局考试办") else response.Write(rs1("单位")) end if %>（章）</td></tr>
+	  <tr><td align="right" style="font-family:楷体; font-size:20px" height="40">
+	   <% rq=cdate("1900-1-1")
+	   	if isdate(rs1("下令日期")) then rq=cdate(rs1("下令日期"))
+	   	if rs1("类别")="新职(工班长)" and isdate(rs1("发证日期")) then rq=cdate(rs1("发证日期"))
+		if not rq>"1980-1-1" then rq=cdate(rs1("结束日期"))+7
+	    response.Write(formatdatetime(rq,1)) %></td></tr>
+	  <tr><td height=15></td></tr>
+	  </table>
+  </td>
+  <td align="center" width="360" style="font-size:20px"><div style="font-family:楷体;line-height:160%">培训科目与成绩</div>
+	  <table width="280" border="1" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-size:18px">
+	  <tr height="40"><td align="center">序<BR>号</td><td align="center">培训科目</td><td align="center">培训<BR>学时</td><td align="center">成绩</td></tr>
+	  <tr height="30"><td align="center">1</td><td align="center"><a href="<%="../Training/pxb_print.asp?pxbid="&rs1("培训班编号")%>" title='查看培训班' target="_blank">班组管理</a></td>
+	  <td align="center"><% if rs1("类别")<>"新职(工班长)" then response.Write("50") else response.Write(rs1("总课时")) end if %></td>
+	  <td align="center"><%=rs1("成绩2")%></td></tr>
+	  <% for i= 2 to 10 %>
+	  <tr height="30"><td align="center"><%=i%></td><td align="center"></td><td align="center"></td><td align="center"></td></tr>
+	  <% next %>
+	  </table>
+	<div style="font-size:14px; line-height:160%;" align="right"><% if rs1("培训班等级")="站段培训" then response.Write(rs1("主办单位")) else response.Write(rs1("承办单位")) end if %>（盖章）&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+	<div style="font-size:14px; line-height:160%;" align="right">
+	<% if rs1("类别")<>"新职(工班长)" then
+		response.Write(formatdatetime(rq,1)) 
+	elseif year(rs1("发证日期"))>1980 then 
+		response.Write(formatdatetime(rs1("结束日期"),1)) 
+	else 
+		response.Write(formatdatetime(rs1("结束日期")+3,1)) 
+	end if %></B> &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+  </td>
+  </tr>
+</table><BR>
+<% else %>
+	<table width="720" border="1" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFFFEE" bordercolor="#BBBBBB">
+  <tr align="center" height="45"><td colspan="2"><%=title%></td></tr>
+  <tr height="450">
+  <td width="360" align="center">
+	  <table width="260" border="0" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-size:18px">
+	  <tr height="20"><td align="center"></td></tr>
+	  <tr><td height=82 align="center" style="font-family:楷体; font-size:22px">工班长资格培训合格证</td></tr>
+	  <tr><td style="font-family:楷体; font-size:20px; line-height:220%" height="135">&nbsp;&nbsp;&nbsp;&nbsp;自____月____日至___月____日参加______________ 培训，经考试（核）合格，颁发此证。</td></tr>
+	  <tr><td align="center" style="font:楷体_GB2312; font-size:20px" height="60"></td></tr>
+	  <tr><td align="right" style="font-family:楷体; font-size:20px" height="40">
+	  （章）</td></tr>
+	  <tr><td align="right" style="font-family:楷体; font-size:20px" height="40">&nbsp;&nbsp;&nbsp;&nbsp; 年 &nbsp;&nbsp; 月 &nbsp;&nbsp; 日</td></tr>
+	  <tr><td height=15></td></tr>
+	  </table>
+  </td>
+  <td align="center" width="360" style="font-size:20px"><div style="font-family:楷体;line-height:160%">培训科目与成绩</div>
+	  <table width="280" border="1" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-size:18px">
+	  <tr height="40"><td align="center">序<BR>号</td><td align="center">培训科目</td><td align="center">培训<BR>学时</td><td align="center">成绩</td></tr>
+	  <% for i= 1 to 10 %>
+	  <tr height="30"><td align="center"><%=i%></td><td align="center"></td><td align="center"></td><td align="center"></td></tr>
+	  <% next %>
+	  </table>
+	<div style="font-size:14px; line-height:160%;" align="right">培训考核单位（盖章）&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+	<div style="font-size:14px; line-height:160%;" align="right">&nbsp;&nbsp;&nbsp;&nbsp; 年 &nbsp;&nbsp; 月 &nbsp;&nbsp; 日&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+  </td>
+  </tr>
+</table><BR>
+<%end if%>
+<table width="100" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr class='paging' style="font-size:1px"><td>&nbsp;</td></tr>
+  <tr><td style="font-size:1px">&nbsp;</td></tr>
+</table>  <!---- 工班长任职资格结束，换页 --->
+
+<table width="722" border="0" cellspacing="0" cellpadding="0" align="center">
+
+<!--  适应性培训考核记录  -->
+<% set rs1 = server.CreateObject("ADODB.RecordSet")
+str = "select * from B3_学员名册,B0_培训班 where B3_学员名册.身份证号 = '"&cn&"' and B3_学员名册.培训班编号 = B0_培训班.编号 and B0_培训班.类别 not in ('新职','转岗','晋升','新职(工班长)','新职(营业线施工)') order by 结束日期"
+rs1.open str,connsql,1,3
+if not (rs1.eof or rs1.bof) then 
+page=2
+do while not rs1.eof %>
+  <tr class='paging' align="center"><td> <!--  适应性培训考核记录  -->
+<table width="720" border="1" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFFFEE"  bordercolor="#BBBBBB">
+  <tr align="center" height="45"><td colspan="2"><%=title%></td></tr>
+  <tr height="50" align="center">
+  <td colspan="2" style="font-size:20px">
+
+  	<table width="620" border="0" cellspacing="0" cellpadding="0" align="center">
+	  <tr height="60">
+	  	<td align="center" width="24%" style=" font-family:'楷体'; font-size:24px;">适&nbsp;应&nbsp;性&nbsp;培&nbsp;训&nbsp;考&nbsp;核&nbsp;记&nbsp;录</td>
+	  </tr>
+	</table>
+	<table width="620" border="1" cellpadding="0" cellspacing="0" bordercolor="#000000" style="border-collapse: collapse;">
+          <tr>
+            <td rowspan="2" width="12%" align="center" height="28"><b>培训时间</b></td>
+            <td rowspan="2" width="34%" align="center"><b>培&nbsp; 训&nbsp; 内&nbsp; 容</b></td>
+			<td rowspan="2" width="6%" align="center"><b>培训<BR>学时</b></td>
+            <td rowspan="2" width="6%" align="center"><strong>培训<BR>形式</strong></td>
+            <td colspan="3" width="18%" height="25" align="center"><strong>考试科目成绩</strong></td>
+            <td rowspan="2" width="20%" align="center"><strong>培训考核<BR>单位（盖章）</strong></td>
+		  </tr>
+          <tr height="25" align="center">
+            <td width="6%"><b>安全</b></td>
+			<td width="6%"><b>理论</b></td>
+            <td width="6%"><B>实作</B></td>
+		  </tr>
+		<%for i = 1 to 5 %>
+			  <tr height="60" align="center">
+			<% if rs1.eof then %>
+				<td>&nbsp;</td>  <td>&nbsp;</td>	  <td>&nbsp;</td>
+				<td>&nbsp;</td>  <td>&nbsp;</td>	  <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+			  <%else%>
+	            <td style="font-size:12px">&nbsp;&nbsp;<% response.Write(rs1("开始日期"))
+					if cdate(rs1("结束日期"))>cdate(rs1("开始日期")) then response.Write("<BR>至"&rs1("结束日期")) %></td>
+				<td align="left">&nbsp;
+					<a href="<%="../Training/pxb_print.asp?pxbid="&rs1("培训班编号")%>" title='查看培训班' target="_blank">
+						<%=replace(rs1("培训班名称"),"培训班","培训")%> </a></td>
+				<td><%if rs1("总课时")>0 then%><%=rs1("总课时")%><%end if%></td>
+            	<td><%=rs1("培训形式")%></td>
+	            <td><%  if rs1("成绩1url")<>"" then %>
+						<a href="<%=rs1("成绩1url")%>" title='查看试卷' style="text-decoration:none; color:#000000" target="_blank"> <%=replace(replace(replace(rs1("成绩1"),".50",".5"),".00",""),"+","<br>+")%> </a>
+					<%	elseif not isnull(rs1("成绩1")) then
+							response.Write(replace(rs1("成绩1"),"+","<br>+"))
+						end if %></td>
+	            <td><%if isnull(rs1("成绩1")) and isnull(rs1("成绩2")) and isnull(rs1("成绩3")) then%>
+						合格
+					<%elseif rs1("成绩2url")<>"" then %>
+						<a href="<%=rs1("成绩2url")%>" title='查看试卷' style="text-decoration:none; color:#000000" target="_blank"> <%=replace(replace(replace(rs1("成绩2"),".50",".5"),".00",""),"+","<br>+")%> </a>
+					<%elseif not isnull(rs1("成绩2")) then 					
+						response.Write(replace(replace(replace(rs1("成绩2"),".50",".5"),".00",""),"+","<br>+"))
+					  end if %></td>
+	            <td><%=rs1("成绩3")%></td>
+	            <td>
+				<table bordercolor="#FF0000" border="1" cellpadding="2" cellspacing="0"><tr><td style="color:#FF0000" align="center">
+				 <% cbdw=rs1("承办单位")
+					if rs1("培训班等级")="站段培训" then cbdw=rs1("主办单位")
+					' cbdw="一二三四五六七八"
+					if len(cbdw)<9 then 
+						response.Write( cbdw&"<BR>培训考核专用章")
+					elseif len(cbdw)<11 then 
+						response.Write( "<font style='font-size:12px'>"&cbdw&"<BR>培训考核专用章</font>")
+					elseif len(cbdw)<15 then 
+						response.Write( "<font style='font-size:12px'>"&left(cbdw,10)&"<BR>"&mid(cbdw,11)&"培训考核专用</font>")
+					elseif len(cbdw)<21 then 
+						response.Write( "<font style='font-size:12px'>"&left(cbdw,10)&"<BR>"&mid(cbdw,11)&"</font>")
+					else 
+						response.Write( "<font style='font-size:10px'>"&left(cbdw,12)&"<BR>"&mid(cbdw,13,12)&"</font>")
+					end if %>
+				</td></tr></table></td>			  
+			  <%rs1.movenext
+				end if%>
+			  </tr>
+		<%next%>
+	</table>
+  	<table width="620" border="0" cellspacing="0" cellpadding="0" align="center">
+	  <tr height="30">
+	  	<td style="font-size:10px">&nbsp;<%'="http://10.192.4.141/manager/staff/staff_prn1.asp?id="&request("id")&"&name="&rs("姓名")%></td>
+	  </tr>
+	</table>
+  </td></tr>
+</table><BR>
+	</td></tr>
+<%loop%>
+<%end if%>
+<!--  考试记录  -->
+
+  <tr class='paging' align="center"><td> <!--  ==工作部门及岗位变更情况==  -->
+<% set rs1 = server.CreateObject("ADODB.RecordSet")
+'str = "select * from B3_学员名册,B0_培训班 where B3_学员名册.身份证号 = '"&cn&"' and B3_学员名册.培训班编号 = B0_培训班.编号"
+str = "select * from B3_学员名册,B0_培训班 where B3_学员名册.身份证号 = '"&cn&"' and B3_学员名册.培训班编号 = B0_培训班.编号 and (B0_培训班.类别='新职' or B0_培训班.类别='转岗' or B0_培训班.类别='晋升') and (B0_培训班.新任工种<>'' or 学习职名<>'') and 下令日期>'1980-1-1' order by 下令日期,结束日期"
+rs1.open str,connsql,1,3 %>
+<table width="720" border="1" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFFFEE">
+  <tr height="496">
+  <td width="360" align="center">
+	  <table width="260" border="0" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-size:18px">
+	  <tr><td height=15>&nbsp;</td></tr>
+	  <tr><td height=40 align="center" style="font-family:楷体; font-size:22px">工作部门及岗位变更情况</td></tr>
+
+	  <tr><td align="center" style="font-size:20px" height="60">
+	  	<table width="260" border="1" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-size:18px">
+			<tr align="center" height="36">
+				<td width="80">变更时间</td><td width="80">工作部门</td><td width="100">工作岗位</td>
+			</tr>
+			<% for i =1 to 5 
+				if not rs1.eof then
+					if isnull(rs1("学习职名")) or rs1("学习职名")="" then xxzm=rs1("新任工种") else xxzm=rs1("学习职名") end if %>
+					<tr align="center" height="65">
+						<% if year(rs1("下令日期"))>1980 then
+							response.Write("<td style='font-size:16px;'>"&rs1("下令日期")&"</td>")
+							elseif year(rs1("发证日期"))>1980 then
+							response.Write("<td style='font-size:16px; color:#00FF00'>"&rs1("发证日期")&"</td>")
+							else
+							response.Write("<td style='font-size:16px; color:#00FF00'>"&rs1("结束日期")&"</td>")
+							end if %>					
+						<td>&nbsp;</td><td><%=xxzm&"<BR>"&rs1("令号") %></td>
+					</tr>
+					<% rs1.movenext %>
+				<% else %>
+					<tr align="center" height="65">
+						<td></td><td></td><td></td>
+					</tr>
+				<% end if%>
+			<% next %>
+		</table>	  
+	  </td></tr>
+
+	  <tr><td height=10></td></tr>
+	  </table>
+  </td>
+  <td width="360" align="center">
+		<table width="288" border="0" cellspacing="0" cellpadding="0" bordercolor="#000000" style="border-collapse: collapse; font-family:'楷体'">
+			<tr height="60" align="center">
+				<td style="font-size:28px"><B>证书使用说明</B></td>
+			</tr>
+			<tr>
+				<td style="font-size:20px; line-height:160%">&nbsp; &nbsp; 1.本证书应填写本人所参加的各项岗位培训内容，是上岗任职资格凭证之一。<BR>&nbsp; &nbsp; 2.无发证单位盖章，本证书无效。<BR>&nbsp; &nbsp; 3.本证书由本人妥善保管，严禁涂改。如有遗失，须到所在单位职教部门申请补发。<BR>&nbsp; &nbsp; 4.遇有各级领导检查培训情况时，须出示此证，接受检查。</td>
+			</tr>
+	  	</table>
+  </td>
+  </tr>
+</table><BR>
+<!--  工作部门及岗位变更情况END  -->
+
+    </td></tr>
+</table>
+	
+
+<!--	<div align="center"><BR>
+		<iframe src='http://10.194.5.102/NetExam/PersonQuery.aspx?pid=<%'=cn%>' width="630px" height="480px"/>
+	</div>-->
+
+</body>
+</html>
+

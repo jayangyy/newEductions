@@ -1,0 +1,584 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cr.cdrb.web.edu.dao;
+
+import cr.cdrb.commons.db.DbUtilsPlus;
+import cr.cdrb.commons.db.builder.ISelectBuilder;
+import cr.cdrb.commons.db.builder.OracleSelectBuilder;
+import cr.cdrb.commons.tools.DateUtil;
+import cr.cdrb.web.edu.daointerface.IEduPlansDao;
+import cr.cdrb.web.edu.daointerface.IPlanReview;
+import cr.cdrb.web.edu.domains.easyui.DataModel;
+import cr.cdrb.web.edu.domains.educlass.EduClass;
+import cr.cdrb.web.edu.domains.educlass.EduProf;
+import cr.cdrb.web.edu.domains.eduplans.EduPlanSearch;
+import cr.cdrb.web.edu.domains.eduplans.EduPlanTransfer;
+import cr.cdrb.web.edu.domains.eduplans.EduPlans;
+import cr.cdrb.web.edu.domains.eduplans.EduPlansTransDto;
+import cr.cdrb.web.edu.domains.eduplans.EduReviewSimpleStatus;
+import cr.cdrb.web.edu.domains.eduplans.EduReviews;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import javax.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+/**
+ *
+ * @author Jayang
+ *
+ * 培训计划制定审核
+ */
+@Repository
+public class EduPlansDao implements IEduPlansDao {
+
+    @Resource(name = "db1")
+    private DbUtilsPlus db;
+    @Autowired
+    private IPlanReview reviewDao;
+
+    @Override
+    public Boolean addPlan(EduPlans plan) throws SQLException {
+        String insSql = "insert into edu_plans\n"
+                + "  (plan_code, plan_name, plan_num, plan_periods, plan_sdate, plan_edate, plan_object, plan_cmt, plan_type, plan_executeunit, plan_unit, plan_situation, plan_execunitid, plan_unitid, plan_profid, plan_prof, plan_class, plan_status_cmt, plan_status) values\n"
+                + "  ('" + UUID.randomUUID() + "', ?, ?, ?, to_date(?,'yyyy-mm-dd hh24:mi:ss'), to_date(?,'yyyy-mm-dd hh24:mi:ss'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        oracle.sql.ROWID rowid = db.insert(insSql, plan.getPlan_name(), plan.getPlan_num(), plan.getPlan_periods(), plan.getPlan_sdate(), plan.getPlan_edate(), plan.getPlan_object(), plan.getPlan_cmt(), plan.getPlan_type(), plan.getPlan_executeunit(), plan.getPlan_unit(), plan.getPlan_situation(), plan.getPlan_execunitid(),
+                plan.getPlan_unitid(), plan.getPlan_profid(), plan.getPlan_prof(), plan.getPlan_class(), EduReviewSimpleStatus.处室待办.toString(), EduReviewSimpleStatus.处室待办.getStats());
+        return !rowid.isNull();
+    }
+
+    @Override
+    public Boolean updatePlan(EduPlans plan) throws SQLException {
+        String updateSql = "update edu_plans set plan_name = ?,plan_num = ?,plan_periods = ?,plan_sdate = to_date(?,'yyyy-mm-dd hh24:mi:ss'),plan_edate = to_date(?,'yyyy-mm-dd hh24:mi:ss'), plan_object = ?, plan_cmt = ?, plan_type = ?, plan_executeunit = ?, plan_unit = ?, plan_situation = ?,plan_execunitid = ?, plan_unitid = ?,plan_profid = ?,plan_prof = ?,plan_class = ? where plan_code = ?";
+        return (int) db.update(updateSql, plan.getPlan_name(), plan.getPlan_num(), plan.getPlan_periods(), plan.getPlan_sdate(), plan.getPlan_edate(), plan.getPlan_object(), plan.getPlan_cmt(), plan.getPlan_type(), plan.getPlan_executeunit(), plan.getPlan_unit(), plan.getPlan_situation(), plan.getPlan_execunitid(),
+                plan.getPlan_unitid(), plan.getPlan_profid(), plan.getPlan_prof(), plan.getPlan_class(), plan.getPlan_code()) > 0;
+    }
+
+    @Override
+    public Boolean removePlan(String ids) throws SQLException {
+        BigDecimal i = db.queryScalar("select count(plan_code) from edu_plans_reviews where plan_code='" + ids + "'");
+        if (Integer.parseInt(i.toString()) > 0) {
+            throw new SQLException("计划已开始执行，不允许删除！");
+        }
+        String removeSql = "delete from edu_plans where plan_code=?";
+        return (int) db.update(removeSql, ids) > 0;
+    }
+
+    @Override
+    public Map<Integer, List<EduPlans>> getPlansPage(EduPlanSearch pageModel) throws Throwable {
+        List<Object> list = new ArrayList<Object>();
+        String whereSql = " 1=1 ";
+        if (pageModel.getReviewstatus() != null) {
+            // //其他单位经办/待办查询
+            if (pageModel.getReviewstatus().length() > 0) {
+                whereSql += "  and plan_status in(" + pageModel.getReviewstatus() + ") ";
+                // list.add(pageModel.getReviewstatus());
+            }
+        }
+        if (pageModel.getIsAuth() == 1) {
+            //处事待办
+            whereSql += "  and plan_status in (" + EduReviewSimpleStatus.getOfficesAuth() + ")";
+        } else if (pageModel.getIsAuth() == 2) {
+            //处事经办
+            whereSql += "  and  plan_status not in(" + EduReviewSimpleStatus.getOfficesAuth() + ")";
+        }
+        //指定处室
+        //其他单位待办，经办查询
+        if (pageModel.getIsCompany() == 1) {
+            whereSql += "  and plan_code in (select DISTINCT PLAN_CODE from EDU_PLANS_REVIEWS WHERE REVIEW_STATUS in( " + EduReviewSimpleStatus.getCompanyStatus() + ") and current_unit=?)";
+            list.add(pageModel.getCurrent_unit());
+        } else if (pageModel.getIsCompany() == 2) {
+            whereSql += "  and plan_code in(select DISTINCT PLAN_CODE from EDU_PLANS_REVIEWS WHERE current_unit=?)";
+            list.add(pageModel.getCurrent_unit());
+        }
+        if (pageModel.getPlan_mainid() != null) {
+            if (pageModel.getPlan_mainid().length() > 0) {
+                //主办单位
+                whereSql += "  and plan_unit=?";
+                list.add(pageModel.getPlan_mainid());
+            }
+        }
+        if (pageModel.getPlan_execid() != null) {
+            //承办单位
+            if (pageModel.getPlan_execid().length() > 0) {
+                whereSql += " and plan_executeunit=?";
+                list.add(pageModel.getPlan_execid());
+            }
+        }
+        if (pageModel.getSreviewstatus() != null) {
+            //承办单位
+            if (pageModel.getSreviewstatus().length() > 0) {
+                whereSql += " and plan_status=?";
+                list.add(pageModel.getSreviewstatus());
+            }
+        }
+        if (pageModel.getPlanname() != null) {
+            if (pageModel.getPlanname().length() > 0) {
+                //计划名称
+                whereSql += " and plan_name like '%" + pageModel.getPlanname() + "%'";
+            }
+            ///list.add(params[3]);
+        }
+        pageModel.setFilterRules(whereSql);
+        ISelectBuilder builder = new OracleSelectBuilder()
+                .from("select plan_code, plan_name, plan_num, plan_periods, plan_sdate, plan_edate, plan_object, plan_cmt, plan_type, plan_executeunit, plan_unit, plan_situation, plan_execunitid, plan_unitid, plan_profid, plan_prof, plan_class, plan_status_cmt, plan_status from edu_plans where 1=1")
+                .where(pageModel.getFilterRules())
+                .orderBy(pageModel.getSort() + " " + pageModel.getOrder())
+                .page(pageModel.getPage(), pageModel.getRows());
+        String totalSql = builder.total();
+        String querySql = builder.toSql();
+        Map<Integer, List<EduPlans>> map = new HashMap<>();
+        BigDecimal total = db.queryScalar(totalSql, list.toArray());
+        map.put(Integer.parseInt(total.toString()), db.queryBeanList(EduPlans.class, querySql, list.toArray()));
+        return map;
+    }
+
+    @Override
+    public EduPlans getPlanById(String id) throws SQLException {
+        String querySql = "select plan_code, plan_name, plan_num, plan_periods, plan_sdate, plan_edate, plan_object, plan_cmt, plan_type, plan_executeunit, plan_unit, plan_situation, plan_execunitid, plan_unitid, plan_profid, plan_prof, plan_class, plan_status_cmt, plan_status from edu_plans where plan_code=?";
+        return db.queryBean(EduPlans.class, querySql, id);
+    }
+
+    @Override
+    public List<EduPlans> getPlans(Object... params) throws SQLException {
+        String querySql = "select plan_code, plan_name, plan_num, plan_periods, plan_sdate, plan_edate, plan_object, plan_cmt, plan_type, plan_executeunit, plan_unit, plan_situation, plan_execunitid, plan_unitid, plan_profid, plan_prof, plan_class, plan_status_cmt, plan_status from edu_plans where 1=1 ";
+        List<String> paramArray = new ArrayList<String>();
+        if (params.length > 0) {
+            if (params[0].toString().length() > 0) {
+                querySql += " and plan_code in (" + params[0] + ")";
+            }
+            if (params[1].toString().length() > 0) {
+                querySql += " and plan_unit=?";
+                paramArray.add(params[1].toString());
+            }
+            if (params[2].toString().length() > 0) {
+                querySql += " and plan_status=?";
+                paramArray.add(params[2].toString());
+            }
+             if (params[3].toString().length() > 0) {
+                querySql += " and PLAN_EXECUTEUNIT=?";
+                paramArray.add(params[3].toString());
+            }
+        }
+        return db.queryBeanList(EduPlans.class, querySql, paramArray.toArray());
+    }
+
+    @Override
+    public List<EduProf> getProfs(Object... uids) throws SQLException {
+        String profSql = "select * from edu_prof where 1=1";
+        int i = 0;
+        if (uids.length > 0) {
+            if (uids[0] != null && !uids[0].equals("")) {
+                profSql += " and id=? ";
+                i++;
+            }
+        }
+        return i > 0 ? db.queryBeanList(EduProf.class, profSql, uids) : db.queryBeanList(EduProf.class, profSql);
+    }
+
+    @Override
+    public EduPlans getPlanInclude(String id) throws SQLException {
+        String querySql = "select plan_code, plan_name, plan_num, plan_periods, plan_sdate, plan_edate, plan_object, plan_cmt, plan_type, plan_executeunit, plan_unit, plan_situation, plan_execunitid, plan_unitid, plan_profid, plan_prof, plan_class, plan_status_cmt, plan_status from edu_plans where plan_code=?";
+        EduPlans model = db.queryBean(EduPlans.class, querySql, id);
+        if (model != null) {
+            String classList = "select * from edu_class where plan_code=?";
+            String reviewList = "select * from edu_plans_reviews where plan_code=? ORDER BY REVIEW_DATE DESC";
+            String transferList = "select * from edu_plans_transfer where plan_code=? order by transfer_date DESC ";
+            model.setEduclasses(db.queryBeanList(EduClass.class, classList, id));
+            model.setEdureviews(db.queryBeanList(EduReviews.class, reviewList, id));
+            model.setPlantranfers(db.queryBeanList(EduPlanTransfer.class, transferList, id));
+        }
+        return model;
+    }
+    //处室移送
+
+    @Override
+    public Boolean transferPlan(EduPlans plan) throws SQLException {
+        String updateSql = "update edu_plans set plan_status=?,plan_status_cmt=? where plan_code=? ";
+        String insSql = "insert into edu_plans_reviews  (review_dcode, plan_code, reviewer, review_status, review_cmt, review_url, plan_status_cmt,current_unit,current_unitid,idcard,review_to_user,review_to_idcard,transfer_code,review_date)  values\n"
+                + "  (?, ?, ?, ?, ?, ?, ?,?,?,?,?,?,?,to_date(?,'yyyy-mm-dd hh24:mi:ss'))";
+        String transSql = "INSERT INTO edu_plans_transfer(transfer_code ,plan_code ,transfer_from_user,transfer_from_idcard ,transfer_to_user ,transfer_to_idcard ,transfer_to_unit,transfer_to_uid,trans_status,trans_status_cmt,transfer_from_unitid,transfer_from_unit) VALUES(? ,? ,? ,?  ,?  ,?  ,? ,? ,?,?,?,?) ";
+        List<String> paramArray = new ArrayList<String>();
+        Object[][] params = null;
+        Object[][] params2 = null;
+        String company="";
+        if (plan.getPlantranfers().size() > 0) {
+            params2 = new Object[plan.getPlantranfers().size()][12];
+            List<EduPlanTransfer> edureviews = plan.getPlantranfers();
+            for (int i = 0; i < edureviews.size(); i++) {
+                params2[i][0] = UUID.randomUUID().toString();
+                params2[i][1] = edureviews.get(i).getPlan_code();
+                params2[i][2] = edureviews.get(i).getTransfer_from_user();
+                params2[i][3] = edureviews.get(i).getTransfer_from_idcard();
+                params2[i][4] = edureviews.get(i).getTransfer_to_user();
+                params2[i][5] = edureviews.get(i).getTransfer_to_idcard();
+                params2[i][6] = edureviews.get(i).getTransfer_to_unit();
+                params2[i][7] = edureviews.get(i).getTransfer_to_uid();
+                params2[i][8] = edureviews.get(i).getTrans_status();
+                params2[i][9] = edureviews.get(i).getTransfer_from_user() + "移送至" + edureviews.get(i).getTransfer_to_user() + edureviews.get(i).getTrans_status_cmt();
+                params2[i][10] = edureviews.get(i).getTransfer_from_unitid();
+                params2[i][11] = edureviews.get(i).getTransfer_from_unit();
+              
+                company+=edureviews.get(i).getTransfer_to_unit()+edureviews.get(i).getTransfer_to_user()+",";
+            }
+        }
+        if (plan.getEdureviews().size() > 0) {
+            params = new Object[plan.getEdureviews().size()][14];
+            List<EduReviews> edureviews = plan.getEdureviews();
+            for (int i = 0; i < edureviews.size(); i++) {
+                params[i][0] = UUID.randomUUID().toString();
+                params[i][1] = edureviews.get(i).getPlan_code();
+                params[i][2] = edureviews.get(i).getReviewer();
+                params[i][3] = edureviews.get(i).getReview_status();
+                params[i][4] = edureviews.get(i).getReview_cmt();
+                params[i][5] = edureviews.get(i).getReview_url();
+                params[i][6] = edureviews.get(i).getCurrent_unit() + edureviews.get(i).getPlan_status_cmt();
+                params[i][7] = edureviews.get(i).getCurrent_unit();
+                params[i][8] = edureviews.get(i).getCurrent_unitid();
+                params[i][9] = edureviews.get(i).getIdcard();
+                params[i][10] = edureviews.get(i).getReview_to_user();
+                params[i][11] = edureviews.get(i).getReview_to_idcard();           
+                params[i][12] = params2[i][0];
+                params[i][13]=DateUtil.FormatDate(edureviews.get(i).getReview_date());
+            }
+        }
+        Connection conn = db.getConnection();
+        try {
+            conn.setAutoCommit(false);
+            db.update(updateSql, plan.getPlan_status(),"移送至"+company+"待办", plan.getPlan_code());
+            db.batch(transSql, params2);
+            db.batch(insSql, params);
+            conn.commit();
+            conn.setAutoCommit(true);
+            return true;
+        } catch (Exception ex) {
+            conn.rollback();
+            if (!conn.getAutoCommit()) {
+                conn.setAutoCommit(true);
+            }
+            throw new SQLException(ex.getMessage());
+        }
+    }
+
+    @Override
+    public Boolean overPlan(EduReviews plan) throws SQLException {
+        String insSql = "insert into edu_plans_reviews(review_dcode, plan_code, reviewer, review_status, review_cmt, review_url, plan_status_cmt,review_date)  values\n"
+                + "  ('" + UUID.randomUUID() + "', ?, ?, ?, ?, ?, ?,to_date(?,'yyyy-mm-dd hh24:mi:ss'))";
+        String updateSql = "update edu_plans set plan_status=?,plan_status_cmt=? where plan_code=? ";
+        Connection conn = db.getConnection();
+        try {
+            conn.setAutoCommit(false);
+            db.update(updateSql, plan.getReview_status(), plan.getPlan_status_cmt(), plan.getPlan_code());
+            db.insert(insSql, plan.getPlan_code(), plan.getReviewer(), plan.getReview_status(), plan.getReview_cmt(), plan.getReview_url(), plan.getPlan_status_cmt(),DateUtil.FormatDate(plan.getReview_date()));
+            conn.commit();
+            conn.setAutoCommit(true);
+            return true;
+        } catch (Exception ex) {
+            conn.rollback();
+            if (!conn.getAutoCommit()) {
+                conn.setAutoCommit(true);
+            }
+            throw new SQLException(ex.getMessage());
+        }
+    }
+
+    @Override
+    public Boolean throwPlan(EduReviews plan) throws SQLException {
+        String insSql = "insert into edu_plans_reviews(review_dcode, plan_code, reviewer, review_status, review_cmt, review_url, plan_status_cmt,review_date)  values\n"
+                + "  ('" + UUID.randomUUID() + "', ?, ?, ?, ?, ?, ?,to_date(?,'yyyy-mm-dd hh24:mi:ss'))";
+        String updateSql = "update edu_plans set plan_status=?,plan_status_cmt=? where plan_code=? ";
+        Connection conn = db.getConnection();
+        try {
+            conn.setAutoCommit(false);
+            db.update(updateSql, plan.getReview_status(), plan.getPlan_status_cmt(), plan.getPlan_code());
+            db.insert(insSql, plan.getPlan_code(), plan.getReviewer(), plan.getReview_status(), plan.getReview_cmt(), plan.getReview_url(), plan.getPlan_status_cmt(),DateUtil.FormatDate(plan.getReview_date()));
+            conn.commit();
+            conn.setAutoCommit(true);
+            return true;
+        } catch (Exception ex) {
+            conn.rollback();
+            if (!conn.getAutoCommit()) {
+                conn.setAutoCommit(true);
+            }
+            throw new SQLException(ex.getMessage());
+        }
+    }
+
+    @Override
+    public Boolean hasPlanLoading(String plan_code) throws SQLException {
+        String querySql1 = "SELECT COUNT(1) from EDU_PLANS_TRANSFER where TRANS_STATUS=" + EduReviewSimpleStatus.待办.getStats() + " and plan_code=?";
+//        BigDecimal hasTransfer = db.queryScalar(1, querySql1, plan_code);
+//        if (Integer.parseInt(hasTransfer.toString()) == 0) {
+//            return false;
+//        }
+//        String querySql = "SELECT count(*)  from EDU_PLANS_REVIEWS where plan_code=?  and REVIEW_TO_IDCARD is not NULL and REVIEW_TO_USER is not NULL";
+//        String queryOSql = "SELECT count(*) FROM EDU_PLANS_REVIEWS where plan_code=? and REVIEW_STATUS=" + EduReviewSimpleStatus.经办.getStats() + " or REVIEW_STATUS=" + EduReviewSimpleStatus.回发.getStats() + " or REVIEW_STATUS=" + EduReviewSimpleStatus.处室回发.getStats();
+        BigDecimal countAll = db.queryScalar(1, querySql1, plan_code);
+//        BigDecimal overed = db.queryScalar(1, queryOSql, plan_code);
+        return Integer.parseInt(countAll.toString()) > 0;
+    }
+
+    @Override
+    public Map<Integer, List<EduPlansTransDto>> getTransPlanPage(EduPlanSearch pageModel) throws Throwable {
+        String whereSql = " 1=1 ";
+        List<Object> list = new ArrayList<Object>();
+        list.add(pageModel.getTo_unit());
+        list.add(pageModel.getTo_uid());
+        list.add(pageModel.getTo_user());
+        list.add(pageModel.getTo_idcard());
+        String querySql1 = "";
+        if (pageModel.getIsAuth() == 1) {
+            whereSql += " and TRANS_STATUS=? AND PLAN_STATUS!=? AND PLAN_STATUS!=?";
+            //待办
+            list.add(pageModel.getTrans_status());
+            list.add(EduReviewSimpleStatus.处室经办.getStats());
+            list.add(EduReviewSimpleStatus.处室废弃.getStats());
+            querySql1 = "SELECT T.TRANSFER_CODE,T.TRANSFER_DATE,T.TRANSFER_FROM_IDCARD,T.TRANSFER_FROM_USER,T.TRANSFER_TO_IDCARD,T.TRANSFER_TO_UID,T.TRANSFER_TO_UNIT,T.TRANSFER_TO_USER,T.TRANS_STATUS,T.TRANS_STATUS_CMT,P.* from edu_plans_transfer  T join EDU_PLANS P on T.PLAN_CODE=P.PLAN_CODE WHERE T.TRANSFER_TO_UNIT=? AND T.TRANSFER_TO_UID=?  and T.TRANSFER_TO_USER=? and T.TRANSFER_TO_IDCARD =? ";
+        } else {
+            //经办
+         //   whereSql += " ";
+            list.add(pageModel.getTrans_status());
+            list.add(EduReviewSimpleStatus.处室废弃.getStats());
+            querySql1 = "SELECT DISTINCT P .* FROM edu_plans_transfer T JOIN EDU_PLANS P ON T .PLAN_CODE = P .PLAN_CODE WHERE T.TRANSFER_TO_UNIT=? AND T.TRANSFER_TO_UID=?  and T.TRANSFER_TO_USER=? and T.TRANSFER_TO_IDCARD =?  and T.TRANS_STATUS!=?  AND P.PLAN_STATUS!=?";
+        }
+//        if (pageModel.getPlan_mainid() != null) {
+//            if (pageModel.getPlan_mainid().length() > 0) {
+//                whereSql += " and plan_executeunit=? ";
+//                list.add(pageModel.getPlan_mainid());
+//            }
+//        }
+        if (pageModel.getPlanname()!= null) {
+            if (pageModel.getPlanname().length() > 0) {
+                whereSql += " and plan_name=? ";
+                list.add(pageModel.getPlanname());
+            }
+        }
+        pageModel.setFilterRules(whereSql);
+
+        ISelectBuilder builder = new OracleSelectBuilder()
+                .from(querySql1)
+                .where(pageModel.getFilterRules())
+                .orderBy(pageModel.getSort() + " " + pageModel.getOrder())
+                .page(pageModel.getPage(), pageModel.getRows());
+        String totalSql = builder.total();
+        String querySql = builder.toSql();
+        Map<Integer, List<EduPlansTransDto>> map = new HashMap<>();
+        BigDecimal total = db.queryScalar(totalSql, list.toArray());
+        map.put(Integer.parseInt(total.toString()), db.queryBeanList(EduPlansTransDto.class, querySql, list.toArray()));
+        return map;
+    }
+
+    ///移送单位审核通过
+    @Override
+    public Boolean authReview(EduReviews review) throws SQLException {
+
+        Connection conn = db.getConnection();
+        try {
+            conn.setAutoCommit(false);
+            EduPlanTransfer transfer = new EduPlanTransfer();
+            transfer.setTransfer_code(review.getTransfer_code());
+            transfer.setTrans_status_cmt(review.getReview_cmt());
+            transfer.setTrans_status(review.getReview_status());
+            transfer.setTransfer_url(review.getReview_url());
+            EduPlans plan = new EduPlans();
+            plan.setPlan_code(review.getPlan_code());
+            plan.setPlan_status_cmt("由" + review.getReviewer() + review.getPlan_status_cmt() + "完成");
+            plan.setPlan_status(-1);
+            Boolean result = updaePlanStatus(plan) && updaeTransferStatus(transfer) && reviewDao.addReview(review);
+            conn.commit();
+            conn.setAutoCommit(true);
+            return result;
+        } catch (Exception ex) {
+            conn.rollback();
+            if (!conn.getAutoCommit()) {
+                conn.setAutoCommit(true);
+            }
+            throw new SQLException(ex.getMessage());
+        }
+    }
+
+    @Override
+    public Boolean updaeTransferStatus(EduPlanTransfer transfer) throws SQLException {
+        String updateSql = "update edu_plans_transfer set TRANS_STATUS=?,TRANS_STATUS_CMT=?,TRANSFER_URL=? where transfer_code=?";
+        return (int) db.update(updateSql, transfer.getTrans_status(), transfer.getTrans_status_cmt(), transfer.getTransfer_url(), transfer.getTransfer_code()) > 0;
+    }
+
+    @Override
+    public Boolean updaePlanStatus(EduPlans plan) throws SQLException {
+        String updateSql = "update edu_plans ";
+        if (plan.getPlan_status() != -1) {
+            updateSql += "set plan_status=?,plan_status_cmt=? where plan_code=?";
+            return (int) db.update(updateSql, plan.getPlan_status(), plan.getPlan_status_cmt(), plan.getPlan_code()) > 0;
+        } else {
+            updateSql += "set plan_status_cmt=? where plan_code=?";
+            return (int) db.update(updateSql, plan.getPlan_status_cmt(), plan.getPlan_code()) > 0;
+        }
+    }
+
+    @Override
+    public EduPlanTransfer getTransferById(String code) throws SQLException {
+        String querySql = "select * from EDU_PLANS_TRANSFER where transfer_code=?";
+        return db.queryBean(EduPlanTransfer.class, querySql, code);
+    }
+
+    //单位内移交
+    @Override
+    public Boolean unitsTransfer(List<EduReviews> review, List<EduPlanTransfer> transfers) throws SQLException {
+
+        String updateSql = "update edu_plans set plan_status_cmt=? where plan_code=? ";
+        String insSql = "insert into edu_plans_reviews  (review_dcode, plan_code, reviewer, review_status, review_cmt, review_url, plan_status_cmt,current_unit,current_unitid,idcard,transfer_code,review_date)  values\n"
+                + "  (?, ?, ?, ?, ?, ?, ?,?,?,?,?,to_date(?,'yyyy-mm-dd hh24:mi:ss'))";
+        String transSql = "INSERT INTO edu_plans_transfer(transfer_code ,plan_code ,transfer_from_user,transfer_from_idcard ,transfer_to_user ,transfer_to_idcard ,transfer_to_unit,transfer_to_uid,trans_status,trans_status_cmt,transfer_from_unitid,transfer_from_unit) VALUES(? ,? ,? ,?  ,?  ,?  ,? ,? ,?,?,?,?) ";
+        String updateTrans = "update edu_plans_transfer set trans_status_cmt=?,trans_status=? where transfer_code=?";
+        List<String> paramArray = new ArrayList<String>();
+        Object[][] params = null;
+        Object[][] params2 = null;
+        String companys = "";
+        if (transfers.size() > 0) {
+            params2 = new Object[transfers.size()][12];
+            for (int i = 0; i < transfers.size(); i++) {
+                params2[i][0] = UUID.randomUUID().toString();
+                params2[i][1] = review.get(0).getPlan_code();
+                params2[i][2] = transfers.get(i).getTransfer_from_user();
+                params2[i][3] = transfers.get(i).getTransfer_from_idcard();
+                params2[i][4] = transfers.get(i).getTransfer_to_user();
+                params2[i][5] = transfers.get(i).getTransfer_to_idcard();
+                params2[i][6] = transfers.get(i).getTransfer_to_unit();
+                params2[i][7] = transfers.get(i).getTransfer_to_uid();
+                params2[i][8] = transfers.get(i).getTrans_status();
+                params2[i][9] = transfers.get(i).getTransfer_from_user() + "移送至" + transfers.get(i).getTransfer_to_user() + transfers.get(i).getTrans_status_cmt();
+                companys += transfers.get(i).getTransfer_to_unit() + "(" + transfers.get(i).getTransfer_to_user() + ")" + "|";
+                params2[i][10] = transfers.get(i).getTransfer_from_unitid();
+                params2[i][11] = transfers.get(i).getTransfer_from_unit();
+            }
+        }
+        if (review.size() > 0) {
+            params = new Object[review.size()][12];
+            for (int i = 0; i < review.size(); i++) {
+                params[0][0] = UUID.randomUUID().toString();
+                params[0][1] = review.get(i).getPlan_code();
+                params[0][2] = review.get(i).getReviewer();
+                params[0][3] = review.get(i).getReview_status();
+                params[0][4] = review.get(i).getReview_cmt();
+                params[0][5] = review.get(i).getReview_url();
+                params[0][6] = "由" + review.get(i).getCurrent_unit() + review.get(i).getReviewer() + "移交" + companys + "待办";
+                params[0][7] = review.get(i).getCurrent_unit();
+                params[0][8] = review.get(i).getCurrent_unitid();
+                params[0][9] = review.get(i).getIdcard();
+                params[0][10] = params2[i][0];
+                params[0][11]=DateUtil.FormatDate(review.get(i).getReview_date());
+            }
+        }
+        Connection conn = db.getConnection();
+        try {
+            conn.setAutoCommit(false);
+            db.update(updateSql, "由" + review.get(0).getCurrent_unit() + review.get(0).getReviewer() + "移交" + companys + "待办", review.get(0).getPlan_code());
+            db.update(updateTrans, "由" + review.get(0).getCurrent_unit() + review.get(0).getReviewer() + review.get(0).getPlan_status_cmt(), review.get(0).getReview_status(), review.get(0).getTransfer_code());
+            db.batch(transSql, params2);
+            db.batch(insSql, params);
+            conn.commit();
+            conn.setAutoCommit(true);
+            return true;
+        } catch (Exception ex) {
+            conn.rollback();
+            if (!conn.getAutoCommit()) {
+                conn.setAutoCommit(true);
+            }
+            throw new SQLException(ex.getMessage());
+        }
+    }
+
+    ///回发拟稿人
+    @Override
+    public Boolean authBacktop(EduReviews review) throws SQLException {
+        Connection conn = db.getConnection();
+        try {
+            conn.setAutoCommit(false);
+            EduPlanTransfer transfer = new EduPlanTransfer();
+            transfer.setTransfer_code(review.getTransfer_code());
+            transfer.setTrans_status_cmt("由" + review.getReviewer() + review.getPlan_status_cmt());
+            transfer.setTrans_status(review.getReview_status());
+            transfer.setTransfer_url(review.getReview_url());
+            EduPlans plan = new EduPlans();
+            plan.setPlan_code(review.getPlan_code());
+            plan.setPlan_status_cmt("由" + review.getReviewer() + review.getPlan_status_cmt());
+            plan.setPlan_status(review.getReview_status());
+            Boolean result = updaePlanStatus(plan) && updaeTransferStatus(transfer) && reviewDao.addReview(review);
+            conn.commit();
+            conn.setAutoCommit(true);
+            return result;
+        } catch (Exception ex) {
+            conn.rollback();
+            if (!conn.getAutoCommit()) {
+                conn.setAutoCommit(true);
+            }
+            throw new SQLException(ex.getMessage());
+        }
+    }
+
+    ///回发上一级
+    @Override
+    public Boolean authBackuser(EduReviews review, EduPlanTransfer transfer) throws SQLException {
+        String updateSql = "update edu_plans set plan_status_cmt=? where plan_code=? ";
+        String insSql = "insert into edu_plans_reviews  (review_dcode, plan_code, reviewer, review_status, review_cmt, review_url, plan_status_cmt,current_unit,current_unitid,idcard,transfer_code,review_date)  values\n"
+                + "  (?, ?, ?, ?, ?, ?, ?,?,?,?,?,to_date(?,'yyyy-mm-dd hh24:mi:ss'))";
+        String transSql = "INSERT INTO edu_plans_transfer(transfer_code ,plan_code ,transfer_from_user,transfer_from_idcard ,transfer_to_user ,transfer_to_idcard ,transfer_to_unit,transfer_to_uid,trans_status,trans_status_cmt,transfer_from_unitid,transfer_from_unit) VALUES(? ,? ,? ,?  ,?  ,?  ,? ,? ,?,?,?,?) ";
+        String updateTrans = "update edu_plans_transfer set trans_status_cmt=?,trans_status=? where transfer_code=?";
+        List<String> paramArray = new ArrayList<String>();
+        Object[][] params = null;
+        Object[][] params2 = null;
+        String companys = "";
+        params2 = new Object[1][12];
+        params2[0][0] = UUID.randomUUID().toString();
+        params2[0][1] = transfer.getPlan_code();
+        params2[0][2] = transfer.getTransfer_from_user();
+        params2[0][3] = transfer.getTransfer_from_idcard();
+        params2[0][4] = transfer.getTransfer_to_user();
+        params2[0][5] = transfer.getTransfer_to_idcard();
+        params2[0][6] = transfer.getTransfer_to_unit();
+        params2[0][7] = transfer.getTransfer_to_uid();
+        params2[0][8] = transfer.getTrans_status();
+        params2[0][9] = transfer.getTransfer_from_user() + "移送至" + transfer.getTransfer_to_user() + transfer.getTrans_status_cmt();
+        params2[0][10] = transfer.getTransfer_from_unitid();
+        params2[0][11] = transfer.getTransfer_from_unit();
+        params = new Object[1][12];
+        params[0][0] = UUID.randomUUID().toString();
+        params[0][1] = review.getPlan_code();
+        params[0][2] = review.getReviewer();
+        params[0][3] = review.getReview_status();
+        params[0][4] = review.getReview_cmt();
+        params[0][5] = review.getReview_url();
+        params[0][6] = "由" + review.getCurrent_unit() + review.getReviewer() + "回发" + transfer.getTransfer_to_unit() + "待办";
+        params[0][7] = review.getCurrent_unit();
+        params[0][8] = review.getCurrent_unitid();
+        params[0][9] = review.getIdcard();
+        params[0][10] = params2[0][0];
+        params[0][11]=DateUtil.FormatDate(review.getReview_date());
+        Connection conn = db.getConnection();
+        try {
+            conn.setAutoCommit(false);
+            db.update(updateSql, "由" + review.getCurrent_unit() + review.getReviewer() + "回发" + companys + "待办", review.getPlan_code());
+            db.update(updateTrans, "由" + review.getCurrent_unit() + review.getReviewer() + review.getPlan_status_cmt(), review.getReview_status(), review.getTransfer_code());
+            db.batch(transSql, params2);
+            db.batch(insSql, params);
+            conn.commit();
+            conn.setAutoCommit(true);
+            return true;
+        } catch (Exception ex) {
+            conn.rollback();
+            if (!conn.getAutoCommit()) {
+                conn.setAutoCommit(true);
+            }
+            throw new SQLException(ex.getMessage());
+        }
+    }
+}

@@ -1,0 +1,28 @@
+编号		EM_ID
+姓名            	EM_NAME
+性别            	EM_EGENDER  (1：男 ELSE：女)
+出生日期         EM_BIRTHDAY
+身份证号码	EM_IDCARD
+民族            	EM_NATIONALITY
+政治面貌         EM_POLITICALSTATUS
+现任职务		EM_GZ
+职称		EM_ZC
+技术等级		EM_JOBLEVEL
+岗位		EM_GW
+班组长		EM_BZZ      (1：是 ELSE：否)
+初次工作日期	EM_WORKDATE
+本企业聘用日期	EM_RLRQ
+现工种时间	EM_GZRQ
+资格证号		EM_GPZ
+档案号		EM_DOCID
+人员来源		EM_FROM
+人员性质		EM_RYXZ
+文化程度		EM_EDUBACK
+毕业学校		EM_GRADUATEDFROM
+所学专业		EM_SXZY
+学位		EM_DEGREE
+备注		EM_ZJBZ
+
+张晓辉 cmV0dXJudXJsPS9ib29rL2xpc3QmVXNlclBJRD01MTEwMDIxOTgxMDMxMTE1MTM=
+李本刚 cmV0dXJudXJsPS9ib29rL2xpc3QmVXNlclBJRD01MTAyMTUxOTcwMDIyMzA0OVg=
+喻善明 cmV0dXJudXJsPS9ib29rL2xpc3QmVXNlclBJRD01MTA3MjExOTY2MTIyNzg3MzA=

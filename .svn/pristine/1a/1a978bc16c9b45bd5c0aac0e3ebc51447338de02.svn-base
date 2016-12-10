@@ -1,0 +1,62 @@
+<b:beans xmlns="http://www.springframework.org/schema/security"
+         xmlns:b="http://www.springframework.org/schema/beans"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.springframework.org/schema/beans 
+http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/security
+ http://www.springframework.org/schema/security/spring-security.xsd">
+    <!--    <http>
+          <form-login login-page="/Home/EduLogin"  authentication-failure-url="/index.jsp?error=true"  />
+    </http>
+    <user-service>
+        <user name="user" password="password" authorities="ROLE_USER" />
+    </user-service>-->
+    <global-method-security secured-annotations="enabled" jsr250-annotations="enabled"></global-method-security>
+    <http pattern="/s/**" security="none"/>  
+    <http pattern="/resources/**" security="none"/>  
+    <http pattern="**/*.css" security="none" />   
+    <http pattern="/ebook/**" security="none" />   
+    <http pattern="/test/**" security="none" />   
+    <http pattern="/home/edulogin*" security="none" />   
+    <http auto-config="true" use-expressions="true">    
+        <form-login login-page="/home/edulogin"  authentication-failure-url="/Index?error=true"/>
+        <!-- <intercept-url pattern="/login" access="permitAll" />
+        <intercept-url pattern="/login" access="hasRole('IS_AUTHENTICATED_ANONYMOUSLY')" />  -->     
+        <intercept-url pattern="/**" access="isAuthenticated()"/> 
+        <!--<remember-me data-source-ref="dataSource" />-->
+        <session-management  invalid-session-url="/sessiontimeout.jsp"   />
+        <custom-filter ref="myFilter" before="FILTER_SECURITY_INTERCEPTOR"/> 
+        <logout delete-cookies="JSESSIONID" />
+        <headers>
+            <frame-options disabled="true" />
+        </headers>
+    </http>
+    <b:bean id="myFilter" 
+            class="cr.cdrb.web.edu.security.EduFilterSecurityInterceptor">
+        <b:property name="authenticationManager" 
+                    ref="authenticationManager"/>
+        <b:property name="accessDecisionManager" 
+                    ref="myAccessDecisionManager"/>
+        <b:property name="securityMetadataSource" 
+                    ref="mySecurityMetadataSource"/>
+    </b:bean>
+    <authentication-manager alias="authenticationManager">
+        <authentication-provider user-service-ref="userDetailsManager">
+            <password-encoder ref="passwordEncoder">
+                <!--<salt-source user-property="username" />-->
+            </password-encoder> 
+        </authentication-provider>
+    </authentication-manager>
+    <b:bean  class="org.springframework.security.authentication.event.LoggerListener" />
+    <b:bean id="userDetailsManager" class="cr.cdrb.web.edu.security.EduUserDetailsService"/>
+    <b:bean id="myAccessDecisionManager"
+            class="cr.cdrb.web.edu.security.EduAccessDecisionManager">
+    </b:bean>  
+    <b:bean id="mySecurityMetadataSource"
+            class="cr.cdrb.web.edu.security.EduInvocationSecurityMetadataSourceService">
+    </b:bean> 
+    <b:bean class="org.springframework.security.authentication.encoding.Md5PasswordEncoder" id="passwordEncoder"/>     
+    <!--    <b:bean id="mySecurityMetadataSource"
+            class="cr.cdrb.web.edu.security.EduInvocationSecurityMetadataSourceService">
+    </b:bean> -->
+</b:beans>

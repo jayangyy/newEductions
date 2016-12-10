@@ -1,0 +1,27 @@
+<%-- 
+    Document   : EditGroups
+    Created on : 2016-8-5, 10:57:57
+    Author     : Jayang
+--%>
+
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>JSP Page</title>
+    </head>
+    <body>
+        <form>
+            <input id="userGroups" class="easyui-combotree" data-options="label:'选择用户组:',labelPosition:'top',multiple:true" style="width:100%">
+            <input type="hidden" name="roleid" id="roleid" />
+        </form>
+        <script type="text/javascript">
+            $(function () {
+                var username = $("#ousername").val();
+               // $("#roleid").val(roleid);
+                $("#userGroups").combotree({url: '${pageContext.request.contextPath}/GetUserGroupsTree?username=' + username, method: 'get'})
+            })
+        </script>
+    </body>
+</html>

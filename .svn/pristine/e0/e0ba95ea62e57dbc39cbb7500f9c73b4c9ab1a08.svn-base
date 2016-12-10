@@ -1,0 +1,277 @@
+<%-- 
+    Document   : edit
+    Created on : 2016-8-11, 15:36:08
+    Author     : milord
+--%>
+
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <meta name="_csrf" content="${_csrf.token}"/>
+        <meta name="_csrf_header" content="${_csrf.headerName}"/>
+        <title>Book Edit</title>
+        <link href="../s/js/easyui/themes/bootstrap/easyui.css" rel="stylesheet" type="text/css"/>
+        <link href="../s/js/easyui/themes/icon.css" rel="stylesheet" type="text/css">
+        <script src="../s/js/easyui/jquery.min.js" type="text/javascript"></script>
+        <script src="../s/js/easyui/jquery.easyui.min.js" type="text/javascript"></script>
+        <script src="../s/js/json3/json3.js" type="text/javascript"></script>
+        <script src="../s/js/easyui/locale/easyui-lang-zh_CN.js" type="text/javascript"></script>
+        <script src="../s/js/common.js" type="text/javascript"></script>
+    <style>
+            table.datatable {
+                font-family: verdana,arial,sans-serif;
+                font-size:11px;	
+                color:#333333;
+                border-width: 1px;
+                border-color: #E5E5E5;
+                width: 100%;
+                border-collapse: collapse;
+            }
+            table.datatable td {
+                border-width: 1px;
+                padding: 8px;
+                border-style: solid;
+                border-color: #E5E5E5;
+            }
+            .rightTd{
+            }
+            .leftTd{
+                text-align: right;
+                width: 100px;
+                background-color:#D4D4D4;
+            }
+            .layui-layer-content img{
+                width: auto;
+                height: auto;
+            }
+            .field{position:relative;}
+            .input{border:solid 1px #ddd;width:100%;height:24px;line-height:20px;display:block;border-radius:4px;}
+            .check-error{color:#e33;}
+            .form-group ul{margin:0px;} 
+        </style>
+        <script>
+            var _teacherType=[{"code":"兼职教师","name":"兼职教师"},{"code":"管理人员","name":"管理人员"},{"code":"专职教师","name":"专职教师"}];
+            var _isedit = false;
+            var _editData;
+            var _isvalidpid = true;
+            var _iszjcuser=false;
+            $(function () {
+                anticsrf();
+                _iszjcuser = ${iszjcuser};
+                $("#cbTeacherType").combobox("select",_teacherType[0].code);
+                var  _pid = GetQueryString("pid");
+                if (_pid != null && _pid != ""){
+                    _isedit = true;
+                    bindEditData(_pid);
+                }
+            });
+            function bindEditData(_pid) {
+                $.ajax({
+                    type: 'get',
+                    url: 'teacher/' + _pid,
+                    data: {},
+                    dataType: "json",
+                    async: false,
+                    success: function (r) {
+                        if (r.result) {
+                            _editData = r.rows;
+                            $("#txtPid").val(_editData.pid);
+                            $("#txtPid").attr("disabled","disabled");
+                            $('#dtEduDate').datebox('setValue', _editData.edu_date);
+                            $("#cbTeacherType").combobox("setValue", _editData.type);
+                            $("#txtSubject").val(_editData.subject);
+                            $('#dtJxjyDate').datebox('setValue', _editData.jxjy_date);
+                            $('#dtHireDate').datebox('setValue', _editData.hire_date);
+                            $("#txtMemo").val(_editData.memo);
+                            $("#txtCert").val(_editData.cert);
+                            $("#txtProf").val(_editData.prof);
+                        } else
+                            $.messager.alert("提示", r.info, "alert");
+                    },
+                    error: function () {
+                        $.messager.alert("提示", "调用后台接口出错！", "alert");
+                    }
+                });
+            }
+            function checkPid(obj){
+                _isvalidpid = true;
+//                var _pid = $(obj).val();
+//                if(_pid!=""){
+//                    $.ajax({
+//                        type: 'get',
+//                        url: '../specialjob/validuser',
+//                        data: {pid: _pid,iszjcuser:_iszjcuser},
+//                        dataType: "json",
+//                        success: function (r) {
+//                            if(r.result && r.rows){
+//                                $("#txtUserName").val(r.rows.workername);
+//                                $("#txtUserSex").val(r.rows.sex);
+//                                _isvalidpid = true;
+//                            }else{
+//                                showErrInfo();
+//                                $("#txtUserName").val("");
+//                                $("#txtUserSex").val("");
+//                                _isvalidpid = false;
+//                            }
+//                        },
+//                        error: function () {
+//                            $.messager.alert("提示", "调用后台接口出错！", "alert");
+//                        }
+//                    });
+//                }
+            }
+            function showErrInfo(){
+                $("#txtPid").closest('.form-group').removeClass("check-success");
+                $("#txtPid").closest('.form-group').addClass("check-error");
+                $("#txtPid").closest('.field').append('<div class="input-help"><ul><li>字典表中未找到输入代号匹配的作业项目</li></ul></div>');
+            }
+            function saveDataClick(){
+                $("#txtPid").focus();
+                $('.datatable').find('input').trigger("blur");
+                var numError = $('.datatable').find('.check-error').length;
+                if (numError) {
+                    $('.datatable').find('.check-error').first().find('input').first().focus().select();
+                    return;
+                }
+                if(!_isvalidpid){
+                    showErrInfo();
+                    return;
+                }
+                var _pid = $("#txtPid").val();
+                var _edu_date = $('#dtEduDate').datebox('getValue');
+                var _type = $("#cbTeacherType").combobox("getValue");
+                var _subject = $("#txtSubject").val();
+                var _jxjy_date = $('#dtJxjyDate').datebox('getValue');
+                var _hire_date = $('#dtHireDate').datebox('getValue');
+                var _memo = $("#txtMemo").val();
+                var _cert = $("#txtCert").val();
+                var _prof = $("#txtProf").val();
+                var entity = {pid:_pid,edu_date:_edu_date,type:_type,subject:_subject,jxjy_date:_jxjy_date,hire_date:_hire_date,memo:_memo,cert:_cert,prof:_prof};
+                if(!_isedit){//add
+                    $.ajax({
+                        type: 'post',
+                        url: 'addTeacher',
+                        data: entity,
+                        dataType: "json",
+                        success: function (r) {
+                            $.messager.alert("提示", r.info, "alert");
+                            if (r.result) {
+                                parent.bindData();
+                                parent.$('#edit-window').window('close');
+                            }
+                        },
+                        error: function () {
+                            $.messager.alert("提示", "调用后台接口出错！", "alert");
+                        }
+                    });
+                }else{//edit
+                    $.ajax({
+                        type: 'post',
+                        url: 'editTeacher',
+                        data: entity,
+                        dataType: "json",
+                        success: function (r) {
+                            $.messager.alert("提示", r.info, "alert");
+                            if (r.result) {
+                                parent.bindData();
+                                parent.$('#edit-window').window('close');
+                            }
+                        },
+                        error: function () {
+                            $.messager.alert("提示", "调用后台接口出错！", "alert");
+                        }
+                    });
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <table class="datatable" style="position:fixed;top:0px;left:0px;z-index:99999;background-color:#fff;">
+            <tr>
+                <td class="rightTd" colspan="2" style="text-align:left;">
+                    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="saveDataClick()">确定</a>
+                    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="parent.$('#edit-window').window('close')">关闭</a>
+                </td>
+            </tr>
+        </table>
+        <table class="datatable" style="margin-top:44px">
+            <tr>
+                <td class="leftTd">身份证号：</td>
+                <td class="rightTd">
+                    <div class="form-group">
+                        <div class="field field-icon-right">
+                            <input type="text" class="input" id="txtPid" placeholder="身份证号" data-validate="required:请填写身份证号" onblur="ckeckValue(this);checkPid(this);"/>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="leftTd">姓名：</td>
+                <td class="rightTd">
+                    <input type="text" class="input" id="txtUserName" disabled="disabled" placeholder="姓名（匹配身份证号后自动读取）"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="leftTd">性别：</td>
+                <td class="rightTd">
+                    <input type="text" class="input" id="txtUserSex" disabled="disabled" placeholder="性别（匹配身份证号后自动读取）"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="leftTd">从事教育日期：</td>
+                <td class="rightTd">
+                    <input class="easyui-datebox" id="dtEduDate">
+                </td>
+            </tr>
+            <tr>
+                <td class="leftTd">教师类型：</td>
+                <td class="rightTd">
+                    <input class="easyui-combobox" data-options="valueField:'code',textField:'name',data:_teacherType" id="cbTeacherType">
+                </td>
+            </tr>
+            <tr>
+                <td class="leftTd">课程类型：</td>
+                <td class="rightTd">
+                    <div class="form-group">
+                        <div class="field field-icon-right">
+                            <input type="text" class="input" id="txtSubject" placeholder="课程类型" data-validate="required:请填写课程类型" onblur="ckeckValue(this);"/>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="leftTd">继续教育日期：</td>
+                <td class="rightTd">
+                    <input class="easyui-datebox" id="dtJxjyDate">
+                </td>
+            </tr>
+            <tr>
+                <td class="leftTd">聘用日期：</td>
+                <td class="rightTd">
+                    <input class="easyui-datebox" id="dtHireDate">
+                </td>
+            </tr>
+            <tr>
+                <td class="leftTd">备注：</td>
+                <td class="rightTd">
+                    <input type="text" class="input" id="txtMemo"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="leftTd">资格证书：</td>
+                <td class="rightTd">
+                    <input type="text" class="input" id="txtCert"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="leftTd">专业：</td>
+                <td class="rightTd">
+                    <input type="text" class="input" id="txtProf"/>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

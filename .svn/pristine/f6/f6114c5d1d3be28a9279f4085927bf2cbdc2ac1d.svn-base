@@ -1,0 +1,79 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cr.cdrb.web.edu.services;
+
+import cr.cdrb.web.edu.daointerface.IEduClassDao;
+import cr.cdrb.web.edu.domains.easyui.DataModel;
+import cr.cdrb.web.edu.domains.easyui.QueryModel;
+import cr.cdrb.web.edu.domains.educlass.EduClass;
+import cr.cdrb.web.edu.domains.educlass.EduNewPost;
+import cr.cdrb.web.edu.domains.educlass.EduProf;
+import cr.cdrb.web.edu.domains.educlass.EduTrainingCategory;
+import cr.cdrb.web.edu.services.IServices.IEduClassService;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+/**
+ *
+ * @author Jayang 班级管理服务类
+ */
+@Service
+public class EduClassService implements IEduClassService {
+
+    @Autowired
+    IEduClassDao classDao;
+
+    @Override
+    public DataModel addClass(EduClass model) throws SQLException {
+        return classDao.addClass(model) ? new DataModel().withInfo("添加成功") : new DataModel().withErr("添加失败");
+    }
+
+    @Override
+    public DataModel updateClass(EduClass model) throws SQLException {
+        return classDao.updateClass(model) ? new DataModel().withInfo("修改成功") : new DataModel().withErr("修改失败");
+    }
+
+    @Override
+    public EduClass getClassSingal(Integer id) throws SQLException {
+        return classDao.getClassById(id);
+    }
+
+    @Override
+    public List<EduClass> getClassList(String... ids) throws SQLException {
+        return classDao.getClassList(ids);
+    }
+
+    @Override
+    public DataModel deleteClass(String ids) throws SQLException {
+        return classDao.removeClass(ids) ? new DataModel().withInfo("删除成功") : new DataModel().withErr("删除失败");
+    }
+
+    @Override
+    public DataModel getClassPages(QueryModel pageModel) throws Throwable {
+        Map<Integer, List<EduClass>> resPaging = classDao.getClassPage(pageModel);
+        Integer key;
+        key = (Integer) resPaging.keySet().toArray()[0];
+        return new DataModel().withData(resPaging.get(key), key);
+    }
+
+    @Override
+    public List<EduProf> getProfs(String id) throws SQLException {
+        return classDao.getProfs(id);
+    }
+
+    @Override
+    public List<EduTrainingCategory> getTrains(String id) throws SQLException {
+        return classDao.getTrainnings(id);
+    }
+
+    @Override
+    public List<EduNewPost> getPosts() throws SQLException {
+        return classDao.getNewPosts();
+    }
+}

@@ -1,0 +1,90 @@
+## ---------------------------------------------------------------------------
+## Licensed to the Apache Software Foundation (ASF) under one or more
+## contributor license agreements.  See the NOTICE file distributed with
+## this work for additional information regarding copyright ownership.
+## The ASF licenses this file to You under the Apache License, Version 2.0
+## (the "License"); you may not use this file except in compliance with
+## the License.  You may obtain a copy of the License at
+## 
+## http://www.apache.org/licenses/LICENSE-2.0
+## 
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+## ---------------------------------------------------------------------------
+
+#
+# This file controls most of the logging in ActiveMQ which is mainly based around 
+# the commons logging API.
+#
+log4j.rootLogger=INFO,console,info,warn,error,fatal
+#log4j.logger.org.apache.activemq.spring=WARN
+#log4j.logger.org.apache.activemq.web.handler=WARN
+#log4j.logger.org.springframework=WARN
+#log4j.logger.org.apache.xbean=WARN
+#log4j.logger.org.apache.camel=INFO
+
+# When debugging or reporting problems to the ActiveMQ team,
+# comment out the above lines and uncomment the next.
+
+#log4j.rootLogger=DEBUG, logfile, console
+
+# Or for more fine grained debug logging uncomment one of these
+#log4j.logger.org.apache.activemq=DEBUG
+#log4j.logger.org.apache.camel=DEBUG
+
+# Console appender
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=%5p | %m%n
+log4j.appender.console.Encoding=UTF-8
+
+#log4j.appender.console.threshold=INFO
+
+
+# info File appender
+log4j.logger.info=info
+log4j.appender.info=org.apache.log4j.RollingFileAppender
+log4j.appender.info.file=${catalina.home}/logs/edu_info.log
+log4j.appender.info.maxFileSize=1024KB
+log4j.appender.info.maxBackupIndex=5
+log4j.appender.info.Threshold=INFO
+log4j.appender.info.append=true
+log4j.appender.info.layout=org.apache.log4j.PatternLayout
+log4j.appender.info.layout.ConversionPattern=%d | %-5p | %m | %c | %t%n
+
+# WARN File appender
+log4j.logger.warn=warn
+log4j.appender.warn=org.apache.log4j.RollingFileAppender
+log4j.appender.warn.file=${catalina.home}/logs/edu_warn.log
+log4j.appender.warn.maxFileSize=1024KB
+log4j.appender.warn.maxBackupIndex=5
+log4j.appender.warn.Threshold=WARN
+log4j.appender.warn.append=true
+log4j.appender.warn.layout=org.apache.log4j.PatternLayout
+log4j.appender.warn.layout.ConversionPattern=%d | %-5p | %m | %c | %t%n
+
+# error File appender
+log4j.logger.error=error
+log4j.appender.error=org.apache.log4j.RollingFileAppender
+log4j.appender.error.file=d:/NetBeans/edu_error.log
+log4j.appender.error.maxFileSize=1024KB
+log4j.appender.error.maxBackupIndex=5
+log4j.appender.error.Threshold=ERROR
+log4j.appender.error.append=true
+log4j.appender.error.layout=org.apache.log4j.PatternLayout
+log4j.appender.error.layout.ConversionPattern=%d | %-5p | %m | %c | %t%n
+
+# fatal File appender
+log4j.logger.fatal=fatal
+log4j.appender.fatal=org.apache.log4j.RollingFileAppender
+log4j.appender.fatal.file=${catalina.home}/logs/edu_fatal.log
+log4j.appender.fatal.maxFileSize=1024KB
+log4j.appender.fatal.maxBackupIndex=5
+log4j.appender.fatal.Threshold=FATAL
+log4j.appender.fatal.append=true
+log4j.appender.fatal.layout=org.apache.log4j.PatternLayout
+log4j.appender.fatal.layout.ConversionPattern=%d | %-5p | %m | %c | %t%n
+

@@ -1,0 +1,132 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cr.cdrb.web.edu.services;
+
+import cr.cdrb.web.edu.daointerface.IGroups;
+import cr.cdrb.web.edu.daointerface.IRoleDao;
+import cr.cdrb.web.edu.daointerface.IUserdao;
+import cr.cdrb.web.edu.domains.easyui.ComboTree;
+import cr.cdrb.web.edu.domains.easyui.DataModel;
+import cr.cdrb.web.edu.domains.easyui.QueryModel;
+import cr.cdrb.web.edu.security.domains.EduUser;
+import cr.cdrb.web.edu.security.domains.GroupUser;
+import cr.cdrb.web.edu.security.domains.Groups;
+import cr.cdrb.web.edu.security.domains.Role;
+import cr.cdrb.web.edu.security.domains.UserRole;
+import cr.cdrb.web.edu.services.IServices.IUsersService;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+/**
+ *
+ * @author Jayang 用户
+ */
+@Service
+public class UsersService implements IUsersService {
+
+    @Autowired
+    private IUserdao userDao;
+   @Autowired
+    IRoleDao roleDao;
+   @Autowired
+   IGroups groupsDao;
+    @Override
+    public EduUser GetEduUser(String username) throws SQLException {
+        return userDao.GetEduUser(username);
+    }
+
+    public static EduUser GetCurrentUser() {
+        HttpSession session = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest().getSession();
+        return session.getAttribute("SPRING_SECURITY_CONTEXT") != null ? (EduUser) (((SecurityContext) session.getAttribute("SPRING_SECURITY_CONTEXT")).getAuthentication().getPrincipal()) : null;
+    }
+
+    @Override
+    public DataModel getEduUsersPage(QueryModel pageModel) throws Throwable {
+        Map<Integer, List<EduUser>> resPaging = userDao.GetEduUserPage(pageModel);
+        Integer key;
+        key = (Integer) resPaging.keySet().toArray()[0];
+        return new DataModel().withData(resPaging.get(key), key);
+    }
+
+    @Override
+    public DataModel addEduUser(EduUser user) throws SQLException {
+        
+          return new DataModel().withInfo(userDao.AddUser(user) ? "添加成功" : "添加失败");
+    }
+
+    @Override
+    public DataModel updateEduUser(EduUser user) throws SQLException {
+         return new DataModel().withInfo(userDao.UpdateUser(user) ? "修改成功" : "修改失败");
+    }
+
+    @Override
+    public DataModel deleteEduUser(String uids) throws SQLException {
+         return new DataModel().withInfo(userDao.RemoveUser(uids) ? "删除成功" : "删除失败");
+    }
+
+    @Override
+    public List<ComboTree> getUserRolesTree(String username) throws SQLException {
+               //当前用户
+        EduUser user = userDao.GetEduUser(username);
+        //所有角色
+        List<Role> roleList = roleDao.getRoles();
+        //已分配角色
+        List<Role> crolelist = user.getRoles();
+        List<ComboTree> treeList = new ArrayList<ComboTree>();
+        for (Role item : roleList) {
+            ComboTree tree = new ComboTree();
+            tree.setId(item.getRoleid());
+            tree.setText(item.getRolecmt());
+            for (Role resrole : crolelist) {
+                if (resrole.getRoleid() == item.getRoleid()) {
+                    tree.setChecked(Boolean.TRUE);
+                }
+            }
+        }
+        return treeList;
+    }
+
+    @Override
+    public List<ComboTree> getUserGroupsTree(String username) throws SQLException {
+        EduUser user = userDao.GetEduUser(username);
+        //所有角色
+        List<Groups> roleList = groupsDao.getAllGroups();
+        //已分配角色
+        List<GroupUser> crolelist = userDao.GetGroupUsers(username);
+        List<ComboTree> treeList = new ArrayList<ComboTree>();
+        for (Groups item : roleList) {
+            ComboTree tree = new ComboTree();
+            tree.setId(item.getId());
+            tree.setText(item.getGroup_name());
+            for (GroupUser resrole : crolelist) {
+                if (resrole.getGroup_id() == item.getId()) {
+                    tree.setChecked(Boolean.TRUE);
+                }
+            }
+        }
+        return treeList;
+    }
+
+    @Override
+    public DataModel updateUserRoles(List<UserRole> userRole,String username) throws SQLException {
+        return new DataModel().withInfo(userDao.UpdateUserRoles(userRole,username) ? "修改成功" : "修改失败");
+    }
+
+    @Override
+    public DataModel updateUserGroups(List<GroupUser> groupUser,String username) throws SQLException {
+        
+          return new DataModel().withInfo(userDao.UpdateGroupUsers(groupUser,username) ? "修改成功" : "修改失败");
+    }
+}

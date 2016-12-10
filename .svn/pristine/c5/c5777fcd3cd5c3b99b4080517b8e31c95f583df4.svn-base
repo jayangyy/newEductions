@@ -1,0 +1,252 @@
+<%-- 
+    Document   : list
+    Created on : 2016-8-11, 15:36:00
+    Author     : milord
+--%>
+
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <meta name="_csrf" content="${_csrf.token}"/>
+        <meta name="_csrf_header" content="${_csrf.headerName}"/>
+        <title>列表页</title>
+        <%@include file="/WEB-INF/views/jspf/commonjs.jspf"%>
+        <script type="text/javascript">
+            var _teacherType = [{"code": "", "name": "--所有--"}, {"code": "管理人员", "name": "管理人员"}, {"code": "专职教师", "name": "专职教师"}, {"code": "兼职教师", "name": "兼职教师"}];
+            var _iszjcuser = false;
+            var _iseduuser = false;
+            var _usercompanyid = "";
+            $(document).ready(function () {
+                anticsrf();
+                _iszjcuser = ${iszjcuser};
+                _iseduuser = ${iseduuser};
+                _usercompanyid = "${usercompanyid}";
+                bindUnit();
+                $("#btnAdd").linkbutton("disable");
+                $("#btnEdit").linkbutton("disable");
+                $("#btnDele").linkbutton("disable");
+                if (_iseduuser || _iszjcuser) {
+                    $("#btnAdd").linkbutton("enable");
+                }
+                bindData();
+                $("#tt").datagrid('getPager').pagination({
+                    onSelectPage: function () {
+                        bindData();
+                    }
+                });
+            });
+            function bindData() {
+                var pageNumber = $("#tt").datagrid('getPager').data("pagination").options.pageNumber;
+                pageNumber = pageNumber === 0 ? 1 : pageNumber;
+                var pageSize = $("#tt").datagrid('getPager').data("pagination").options.pageSize;
+                var _teacherType = $("#cbTeacherType").combobox("getValue");
+                var _dwid = $("#cbUnit").combobox("getValue");
+                var _bmid="";
+                var node = $("#cbDepartment").tree("getSelected");
+                _bmid=node.id;
+                var _filterRules = [];
+                if ($("#tbPidNo").val() != "")
+                    _filterRules.push({"field": "pid", "op": "contains", "value": $("#tbPidNo").val()});
+                if ($("#tbSubjectType").val() != "")
+                    _filterRules.push({"field": "subject", "op": "contains", "value": $("#tbSubjectType").val()});
+                if (_teacherType != "")
+                    _filterRules.push({"field": "type", "op": "equals", "value": _teacherType});
+                if (_dwid != "-1")
+                    _filterRules.push({"field": "dwid", "op": "equals", "value": _dwid});
+                if (_bmid != "-1")
+                    _filterRules.push({"field": "bmid", "op": "equals", "value": _bmid});
+
+                var filterRuleStr = "";
+                if (_filterRules.length > 0)
+                    filterRuleStr = JSON.stringify(_filterRules);
+                var _sort = $("#tt").datagrid('options').sortName;
+                var _order = $("#tt").datagrid('options').sortOrder;
+                $.ajax({
+                    type: 'get',
+                    url: 'allTeachers',
+                    data: {page: pageNumber, rows: pageSize, filterRules: filterRuleStr, sort: _sort, order: _order},
+                    dataType: "json",
+                    success: function (r) {
+                        if (r.result) {
+                            $("#tt").datagrid("loadData", r);
+                            if (r.rows.length > 0)
+                                $("#tt").datagrid("selectRow", 0);
+                        } else
+                            $.messager.alert("提示", r.info, "info");
+                    },
+                    error: function () {
+                        $.messager.alert("提示", "调用后台接口出错！", "error");
+                    }
+                });
+            }
+            function searchClick() {
+                $("#tt").datagrid("unselectAll");
+                bindData();
+            }
+            function addData() {
+                var con = '<iframe src="edit" frameborder="no" width="100%" height="100%" border="0" marginwidth="0" marginheight="0" scrolling="yes" allowtransparency="yes"></iframe>';
+                $("#edit-window").html(con);
+                $("#edit-window").window({title: '新增兼职教师'})
+                $("#edit-window").window("open");
+            }
+            function editData() {
+                var row = $("#tt").datagrid("getSelected");
+                if (row) {
+                    var con = '<iframe src="edit?pid=' + row.pid + '" frameborder="no" width="100%" height="100%" border="0" marginwidth="0" marginheight="0" scrolling="yes" allowtransparency="yes"></iframe>';
+                    $("#edit-window").html(con);
+                    $("#edit-window").window({title: '编辑兼职教师[ ' + row.name + ' ]'})
+                    $("#edit-window").window("open");
+                } else
+                    $.messager.alert("提示", "请选择要编辑的数据！", "warning");
+            }
+            function delData() {
+                var row = $("#tt").datagrid("getSelected");
+                if (row) {
+                    $.messager.confirm("提示", "确定要删除兼职教师[ " + row.name + " ]？", function (r) {
+                        if (r)
+                        {
+                            $.ajax({
+                                type: 'delete',
+                                url: 'teacher/' + row.pid,
+                                data: {},
+                                dataType: "json",
+                                success: function (r) {
+                                    $.messager.alert("提示", r.info, "info");
+                                    if (r.result) {
+                                        bindData();
+                                    }
+                                },
+                                error: function () {
+                                    $.messager.alert("提示", "调用后台接口出错！", "error");
+                                }
+                            });
+                        }
+                    });
+                } else
+                    $.messager.alert("提示", "请选择要删除的数据！", "warning");
+            }
+            function datagridSelectRow(index, row) {
+                if (_usercompanyid == row.dwid) {
+                    $("#btnEdit").linkbutton("enable");
+                    $("#btnDele").linkbutton("enable");
+                } else {
+                    $("#btnEdit").linkbutton("disable");
+                    $("#btnDele").linkbutton("disable");
+                }
+            }
+            function bindUnit(){
+                $.ajax({
+                    type: 'get',
+                    url: '../specialjob/getAllUnit',
+                    data: {},
+                    async: false,
+                    dataType: "json",
+                    success: function (r) {
+                        if(r.result){
+                            r.rows.unshift({"id": "-1", "name": "--所有--"});
+                            $("#cbUnit").combobox("loadData", r.rows);
+                            if(_iszjcuser){
+                                $("#cbUnit").combobox("select", r.rows[0].id);
+                            }else{
+                                $("#cbUnit").combobox("select", _usercompanyid);
+                                $("#cbUnit").combobox("disable");
+                            }
+                        }
+                    },
+                    error: function () {
+                        $.messager.alert("提示", "调用后台接口出错！", "error");
+                    }
+                });
+            }
+            function bindDepartment(){
+                var _dwid= $("#cbUnit").combobox("getValue");
+                var _dwname= $("#cbUnit").combobox("getText");
+                $.ajax({
+                    type: 'get',
+                    url: '../specialjob/getDepartmentTree',
+                    data: {dwid:_dwid},
+                    async: false,
+                    dataType: "json",
+                    success: function (r) {
+                        if(r.result){
+                            var root = [{"id": "-1", "text": _dwname,"children":r.rows}];
+//                            r.rows.unshift();
+                            $("#cbDepartment").tree("loadData", root);
+                            $("#cbDepartment").tree("select", $("#cbDepartment").tree("getRoot").target);
+                        }
+                    },
+                    error: function () {
+                        $.messager.alert("提示", "调用后台接口出错！", "error");
+                    }
+                });
+            }
+        </script>
+    </head>
+    <body>
+
+        <div id='cc' class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'west',split:true" title="部门列表" style="width:260px">
+                <div class="easyui-layout" data-options="fit:true">
+                    <div data-options="region:'north'" style="height:40px;padding:8px 10px;">
+                        单位：
+                        <input class="easyui-combobox" data-options="valueField:'id',textField:'name',onChange:bindDepartment" style="width:150px;" id="cbUnit">
+                    </div>
+                    <div data-options="region:'center',split:true" style="padding:5px;">
+                        <ul class="easyui-tree" data-options="onSelect:bindData" id="cbDepartment"></ul>
+                    </div>
+                </div>
+            </div>
+            <div data-options="region:'center',split:true">
+                <table id="tt" title="教师列表" class="easyui-datagrid" data-options="
+                       rownumbers:true,
+                       fit:true,
+                       singleSelect:true,
+                       pagination:true,
+                       pageSize:20,
+                       idField:'pid',
+                       onSelect:datagridSelectRow,
+                       onSortColumn:bindData,
+                       toolbar:'#menuTollbar'">
+                    <thead>
+                        <tr>
+                            <th data-options="field:'dwname',width:100,align:'center',halign:'center',sortable:'true'">单位</th>
+                            <th data-options="field:'bmname',width:150,align:'center',halign:'center',sortable:'true'">部门</th>
+                            <th data-options="field:'pid',width:130,align:'center',halign:'center',sortable:'true'">身份证号</th>
+                            <th data-options="field:'name',width:100,align:'center',halign:'center',sortable:'true'">姓名</th>
+                            <th data-options="field:'edu_date',width:95,align:'center',halign:'center',sortable:'true'">从事教育日期</th>
+                            <th data-options="field:'type',width:80,align:'center',halign:'center',sortable:'true'">教师类型</th>
+                            <th data-options="field:'subject',width:130,align:'center',halign:'center',sortable:'true'">课程类型</th>
+                            <th data-options="field:'jxjy_date',width:95,align:'center',halign:'center',sortable:'true'">继续教育日期</th>
+                            <th data-options="field:'hire_date',width:80,align:'center',halign:'center',sortable:'true'">聘用日期</th>
+                            <th data-options="field:'memo',width:130,align:'center',halign:'center',sortable:'true'">备注</th>
+                            <th data-options="field:'cert',width:130,align:'center',halign:'center',sortable:'true'">资格证书</th>
+                            <th data-options="field:'prof',width:130,align:'center',halign:'center',sortable:'true'">专业</th>
+                        </tr>
+                    </thead>
+                </table>
+                <div id="menuTollbar" style="height: auto;">
+                    <a href="#" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-s-reload'" onclick="bindData();">刷新</a>
+                    <a href="#" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-s-add'" id="btnAdd" onclick="addData();">添加</a>
+                    <a href="#" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-s-edit'" id="btnEdit" onclick="editData();">编辑</a>
+                    <a href="#" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-s-del'" id="btnDele" onclick="delData();">删除</a>
+                    <div style="padding:2px;border-top:1px solid #D4D4D4;">
+                        <span>身份证号：</span>
+                        <input class="easyui-textbox" style="width:120px" id="tbPidNo">
+                        <span style="padding-left:10px;">教师类型：</span>
+                        <input class="easyui-combobox" data-options="valueField:'code',textField:'name',data:_teacherType" style="width:80px;" id="cbTeacherType">
+                        <span>课程类型：</span>
+                        <input class="easyui-textbox" style="width:120px" id="tbSubjectType">
+                        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-s-search'" onclick="searchClick()">查询</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="edit-window" class="easyui-window" title="" data-options="modal:true,closed:true,iconCls:'icon-save',minimizable:false,collapsible:false" style="width:660px;height:480px;overflow:hidden;">
+
+        </div>
+    </body>
+</html>

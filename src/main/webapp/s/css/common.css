@@ -1,0 +1,61 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 2016-9-1, 10:30:05
+    Author     : milord
+*/
+
+
+table.datatable {
+    font-family: verdana,arial,sans-serif;
+    font-size:11px;	
+    color:#333333;
+    border-width: 1px;
+    border-color: #E5E5E5;
+    width: 100%;
+    border-collapse: collapse;
+}
+table.datatable td {
+    border-width: 1px;
+    padding: 8px;
+    border-style: solid;
+    border-color: #E5E5E5;
+}
+.rightTd{
+}
+.leftTd{
+    text-align: right;
+    width: 100px;
+    background-color:#D4D4D4;
+}
+.layui-layer-content img{
+    width: auto;
+    height: auto;
+}
+.field{position:relative;}
+.input{border:solid 1px #ddd;width:100%;height:24px;line-height:20px;display:block;border-radius:4px;}
+.check-error{color:#e33;}
+.form-group ul{margin:0px;} 
+.autocompleteResult{
+    z-index: 999;
+    background-color: #fff;
+    position: absolute;
+    height:auto;
+    color:black;
+}
+.autocompleteResult ul{margin:0;padding:0}
+.autocompleteResult ul li{
+    list-style: none;
+    display: block;
+    height:25px;
+    line-height: 25px;
+    text-indent: 30px;
+    cursor: pointer;
+    width:100%;
+}
+.autocompleteResult ul li.select{
+    background-color: #dddddd;
+}

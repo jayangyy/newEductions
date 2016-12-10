@@ -1,0 +1,119 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cr.cdrb.web.edu.controllers;
+
+import com.alibaba.fastjson.JSON;
+import cr.cdrb.web.edu.domains.easyui.FilterRule;
+import cr.cdrb.web.edu.domains.easyui.QueryModel;
+import cr.cdrb.web.edu.model.Special_Job_Card;
+import cr.cdrb.web.edu.services.SpecialJobCardService;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+/**
+ *
+ * @author milord
+ */
+@Controller
+@RequestMapping("specialjob/")
+public class SpecialJobCardController {
+    @Autowired
+    SpecialJobCardService service;
+    
+    @RequestMapping(value = "list")
+    public String getListPage() {
+        return "specialjob/list";
+    }
+    
+    @RequestMapping(value = "edit")
+    public String getEditPage() {
+        return "specialjob/edit";
+    }
+    
+    @RequestMapping(value = "allCards", method = RequestMethod.GET)
+    @ResponseBody
+    public Object getAllCards(QueryModel model) throws Exception {
+        int rows = model.getRows();
+        int page = (model.getPage() - 1) * rows;
+        String sort = StringUtils.isBlank(model.getSort()) ? "card_no" : model.getSort();
+        String order = StringUtils.isBlank(model.getOrder()) ? "asc" : model.getOrder();
+        List<String> param = new ArrayList<>();
+
+        String whereStr = "1=1";
+        List<FilterRule> frlist = JSON.parseArray(model.getFilterRules(), FilterRule.class);
+        if (frlist != null) {
+            for (FilterRule item : frlist) {
+                String field = item.getField();
+                String op = item.getOp();
+                String value = item.getValue();
+                switch (op) {
+                    case "equals":
+                        whereStr += " and " + field + " = ?";
+                        param.add(value);
+                        break;
+                    case "contains":
+                        whereStr += " and " + field + " like ?";
+                        param.add("%"+value+"%");
+                        break;
+                    case "less":
+                        whereStr += " and " + field + " > ?";
+                        param.add(value);
+                        break;
+                    case "greater":
+                        whereStr += " and " + field + " < ?";
+                        param.add(value);
+                        break;
+                    case "custom":
+                        break;
+                }
+            }
+        }
+        return JSON.toJSONString(service.getSpecialJobCardPaging(page, rows, sort, order, whereStr, model.getSearch(), param.toArray()));
+    }
+    
+    @RequestMapping(value = "validuser", method = RequestMethod.GET)
+    @ResponseBody
+    public Object getUserInfoByPid(String pid) throws Exception {
+        return service.getUserInfoByPid(pid);
+    }
+    
+    @RequestMapping(value = "addCard", method = RequestMethod.POST)
+    @ResponseBody
+    public Object insertSpecialJobCard(Special_Job_Card card) throws Exception {
+        return service.insertSpecialJobCard(card);
+    }
+    
+    @RequestMapping(value = "card/{oldcardno}", method = RequestMethod.POST)
+    @ResponseBody
+    public Object updateSpecialJobCard(Special_Job_Card card,@PathVariable String oldcardno) throws Exception {
+        return service.updateSpecialJobCard(card,oldcardno);
+    }
+    
+    @RequestMapping(value = "card/{cardno}", method = RequestMethod.DELETE)
+    @ResponseBody
+    public Object deleteSpecialJobCard(@PathVariable String cardno) throws Exception {
+        return service.deleteSpecialJobCard(cardno);
+    }
+    
+    @RequestMapping(value = "card/{card_no}", method = RequestMethod.GET)
+    @ResponseBody
+    public Object getSpecialJobCardByCardNo(@PathVariable String card_no) throws Exception {
+        return service.getSpecialJobCardByCardNo(card_no);
+    }
+    
+    @RequestMapping(value = "sjtype", method = RequestMethod.GET)
+    @ResponseBody
+    public Object getSpecialJobType(String fcode) throws Exception {
+        return service.getSpecialJobType(fcode);
+    }
+}

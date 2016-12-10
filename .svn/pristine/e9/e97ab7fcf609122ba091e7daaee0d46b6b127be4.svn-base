@@ -1,0 +1,96 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cr.cdrb.web.edu.dao;
+
+import cr.cdrb.commons.db.DbUtilsPlus;
+import cr.cdrb.commons.db.builder.ISelectBuilder;
+import cr.cdrb.commons.db.builder.SqlserverSelectBuilder;
+import cr.cdrb.web.edu.model.Special_Job_Card;
+import cr.cdrb.web.edu.model.Special_Job_Type;
+import cr.cdrb.web.edu.security.domains.Users;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Resource;
+import org.springframework.stereotype.Component;
+
+/**
+ *
+ * @author milord
+ */
+@Component
+public class SpecialJobCardDao {
+    @Resource(name = "db1")
+    private DbUtilsPlus db;
+    public Map<Integer, List<Special_Job_Card>> getSpecialJobCardPaging(int page, int rows, String sort, String order, String filterRules, String search,Object[] param) throws SQLException, Exception {
+        ISelectBuilder builder = new SqlserverSelectBuilder()
+                .from("select *,case when valid_end_date > GETDATE() then case when reviewdate<GETDATE() then 0 when reviewdate<DATEADD(month, 3, GETDATE()) then 1 else 2 end else 0 end as status from special_job_card")
+                .where(filterRules)
+                .orderBy(sort + " " + order)
+                .limit(page, rows);
+
+        String totalSql = builder.total();
+        String querySql = builder.toSql();
+        Map<Integer, List<Special_Job_Card>> map = new HashMap<>();
+        Integer total = db.queryScalar(totalSql,param);
+        map.put(total, db.queryBeanList(Special_Job_Card.class, querySql,param));
+        return map;
+    }
+    
+    public Map<Boolean, String> insertSpecialJobCard(Special_Job_Card card) throws SQLException {
+        Map<Boolean, String> resultMap = new HashMap<>();
+        String sql = "select count(1) from special_job_card where card_no=?";
+        Integer count = (Integer)db.queryArray(sql,card.getCard_no())[0];
+        if(count<=0){
+            sql = "insert into special_job_card(card_no,cert_no,pid,name,sex,lbcode,zylb,xmcode,zcxm,firstdate,valid_begin_date,valid_end_date,reviewdate) values(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            db.insert(sql,card.getCard_no(),card.getCert_no(),card.getPid(),card.getName(),card.getSex(),card.getLbcode(),card.getZylb(),card.getXmcode(),card.getZcxm(),card.getFirstdate(),card.getValid_begin_date(),card.getValid_end_date(),card.getReviewdate());
+            resultMap.put(true, "保存成功！");
+        }else{
+            resultMap.put(false, "保存失败，该卡号[ "+card.getCard_no()+" ]数据已经存在！");
+        }
+        return resultMap;
+    }
+    
+    public Map<Boolean, String> updateSpecialJobCard(Special_Job_Card card,String oldcardno) throws SQLException {
+        Map<Boolean, String> resultMap = new HashMap<>();
+        String sql = "select count(1) from special_job_card where card_no=? and card_no<>?";
+        Integer count = (Integer)db.queryArray(sql,card.getCard_no(),oldcardno)[0];
+        if(count<=0){
+            sql = "update special_job_card set card_no=?,cert_no=?,pid=?,name=?,sex=?,lbcode=?,zylb=?,xmcode=?,zcxm=?,firstdate=?,valid_begin_date=?,valid_end_date=? where card_no=?";
+            db.insert(sql,card.getCard_no(),card.getCert_no(),card.getPid(),card.getName(),card.getSex(),card.getLbcode(),card.getZylb(),card.getXmcode(),card.getZcxm(),card.getFirstdate(),card.getValid_begin_date(),card.getValid_end_date(),oldcardno);
+            resultMap.put(true, "编辑成功！");
+        }else{
+            resultMap.put(false, "编辑失败，该卡号[ "+card.getCard_no()+" ]数据已经存在！");
+        }
+        return resultMap;
+    }
+    
+    public Map<Boolean, String> deleteSpecialJobCard(String cardno) throws SQLException {
+        Map<Boolean, String> resultMap = new HashMap<>();
+        String sql = "delete special_job_card where card_no=?";
+        db.update(sql, cardno);
+        resultMap.put(true, "删除成功！");
+        return resultMap;
+    }
+    
+    public Special_Job_Card getSpecialJobCardByCardNo(String card_no) throws Exception {
+        String sql = "select * from special_job_card where card_no=?";
+        Special_Job_Card card = db.queryBean(Special_Job_Card.class, sql, card_no);
+        return card;
+    }
+    
+    public List<Special_Job_Type> getSpecialJobType(String fcode) throws SQLException {
+        String sql = "select code,name,parentcode from special_job_type where parentcode=?";
+        return db.queryBeanList(Special_Job_Type.class, sql, fcode);
+    }
+    
+    @Resource(name = "db2")
+    private DbUtilsPlus db2;
+    public Users getUserInfoByPid(String pid) throws SQLException{
+        return db2.queryBean(Users.class, "SELECT 编号 id, 姓名 name, 性别 sex, 身份证号码 pid, 岗位 post FROM S1_职工基本信息 where 身份证号码=?",pid);
+    }
+}

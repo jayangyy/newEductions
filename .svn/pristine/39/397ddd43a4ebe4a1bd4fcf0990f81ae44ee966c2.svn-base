@@ -1,0 +1,160 @@
+/*文本框*/
+input[type='text'] {
+	height: 20px;
+	border: 1px solid #DCDCDC;
+	font-size: 13px;
+	padding-top: 3px;
+	padding-left: 5px;
+}
+/*文本框-鼠标滑过、得到焦点*/
+input[type='text']:hover,input[type='text']:focus {  /*鼠标指针在其上浮动的input[type='text']*/
+	border: 1px solid #FBC986;
+}
+/*下拉框*/
+select {
+	height: 26px;
+	border: 1px solid #DCDCDC;
+}
+/*单选按钮组*/
+input[type='radio'] + label {
+	cursor: pointer;
+	margin-right: 10px;
+}
+
+
+
+
+/*整个表格border:1px solid #009193;*/
+.tab {
+	height: auto;
+	box-sizing: border-box;
+	border-top: 1px solid #009193;
+	border-right: 1px solid #009193;
+}
+.tab th, .tab td {
+	box-sizing:border-box;
+	text-align: center;
+	padding:5px;
+	border-collapse: collapse;
+	border-left: 1px solid #009193;
+	border-bottom: 1px solid #009193;
+}
+.tab th {
+	color: #0532FF;
+	font-size: 16px;
+}
+.tab td {
+	color: #141414;
+	font-size: 14px;
+}
+.tab td > div > input[type='text'] {
+	box-sizing:border-box;
+	width: 100%;
+	height:22px;
+}
+/*表头*/
+.tab-title {
+	font-size: 30px;
+	font-weight: bold;
+	text-align: center;
+	color: #009193;
+	line-height: 50px;
+}
+/*子表头*/
+.sub-tab-title {
+	font-size: 16px;
+	font-weight: bold;
+	text-align: center;
+	color: #4B4B4B;
+	line-height: 20px;
+	margin-bottom:10px;
+}
+/*开发资源列表表格样式*/
+.tab2 {
+	width: 100%;
+	height: auto;
+	border-collapse: collapse;
+	box-sizing: border-box;
+}
+.tab2 th, .tab2 td {
+	border: 1px solid #c0c0c0;
+	width: auto;
+	text-align: center;
+	padding: 5px;
+}
+.tab2 th {
+	color: #000000;
+	font-size: 16px;
+}
+.tab2 td {
+	color: #141414;
+	font-size: 14px;
+}
+.tab2 th.seq{width:50px;}
+.tab2 th.sj{width:180px;}/*时间*/
+/*附件图标*/
+.tb {
+	margin-left: 10px;
+}
+.tb-excel {
+	width: 50px;
+	height: 50px;
+	background-image: url('../img/tb-excel.jpg');
+	margin: 0 auto;
+}
+.tb-word {
+	width: 50px;
+	height: 50px;
+	background-image: url('../img/tb-word.jpg');
+	margin: 0 auto;
+}
+.tb-pdf {
+	width: 50px;
+	height: 50px;
+	background-image: url('../img/tb-pdf.jpg');
+	margin: 0 auto;
+}
+
+/*会签意见*/
+.hqyj {
+	border-bottom: 1px dashed #808080;
+}
+.hqyj-txt {
+	padding: 3px 10px;
+}
+.hqyj-memo {
+	text-indent: 100px;
+	color: #808080;
+	font-size: 12px;
+}
+.hqyj-memo > span {
+	margin-left: 10px;
+}
+
+/*zhang*/
+.zhang {
+	width: 150px;
+	height: 150px;
+	margin-left: 20px;
+}
+.z-cwd {
+	background-image: url('../img/z-cwd.png');
+	margin: 0 auto;
+}
+.z-jkc {
+	background-image: url('../img/z-jkc.png');
+	margin: 0 auto;
+}
+.z-zgc {
+	background-image: url('../img/z-zgc.png');
+	margin: 0 auto;
+}
+
+/*当前待办字体*/
+.c-red>span{color: #980000;}
+/*请示审批文件样式*/
+.list-file{list-style:none;padding:2px;margin:0;}
+.list-file>li{list-style:none;float:left;position:relative;padding:2px 5px;margin:2px 5px;}
+.list-file>li>a.del{display:none;position: absolute;right:-10px;top:-5px;width:16px;height:16px;font-size:12px;}
+.list-file>li:hover{cursor:default;}
+.list-file>li:hover>a.del{display:block;cursor:pointer;color: red;}

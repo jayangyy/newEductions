@@ -1,0 +1,265 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cr.cdrb.web.edu.controllers;
+
+import com.alibaba.fastjson.JSON;
+import cr.cdrb.web.edu.domains.easyui.DataModel;
+import cr.cdrb.web.edu.domains.easyui.FilterRule;
+import cr.cdrb.web.edu.domains.easyui.QueryModel;
+import cr.cdrb.web.edu.model.Special_Job_Card;
+import cr.cdrb.web.edu.model.Special_Job_Type;
+import cr.cdrb.web.edu.security.domains.EduUser;
+import cr.cdrb.web.edu.services.SpecialJobCardService;
+import cr.cdrb.web.edu.services.UsersService;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+/**
+ *
+ * @author milord
+ */
+@Controller
+@RequestMapping("specialjob/")
+public class SpecialJobCardController {
+
+    private List<Special_Job_Type> sjtArr;
+    @Autowired
+    SpecialJobCardService service;
+    
+    @RequestMapping(value = "list")
+    public String getListPage() throws Exception {
+        sjtArr = service.getAllSpecialJobType();
+        return "specialjob/list";
+    }
+    @RequestMapping(value = "/")
+    public String getUpPage() {
+        return "specialjob/list";
+    }
+    
+    @RequestMapping(value = "edit")
+    public String getEditPage() {
+        return "specialjob/edit";
+    }
+    
+    @RequestMapping(value = "allCards", method = RequestMethod.GET)
+    @ResponseBody
+    public Object getAllCards(QueryModel model) throws Exception {
+        int rows = model.getRows();
+        int page = (model.getPage() - 1) * rows;
+        String sort = StringUtils.isBlank(model.getSort()) ? "card_no" : model.getSort();
+        String order = StringUtils.isBlank(model.getOrder()) ? "asc" : model.getOrder();
+        List<String> param = new ArrayList<>();
+        
+        String whereStr = "1=1";
+        List<FilterRule> frlist = JSON.parseArray(model.getFilterRules(), FilterRule.class);
+        if (frlist != null) {
+            for (FilterRule item : frlist) {
+                String field = item.getField();
+                String op = item.getOp();
+                String value = item.getValue();
+                switch (op) {
+                    case "equals":
+                        whereStr += " and " + field + " = ?";
+                        param.add(value);
+                        break;
+                    case "contains":
+                        whereStr += " and " + field + " like ?";
+                        param.add("%" + value + "%");
+                        break;
+                    case "less":
+                        whereStr += " and " + field + " > ?";
+                        param.add(value);
+                        break;
+                    case "greater":
+                        whereStr += " and " + field + " < ?";
+                        param.add(value);
+                        break;
+                    case "custom":
+                        break;
+                }
+            }
+        }
+        return JSON.toJSONString(service.getSpecialJobCardPaging(page, rows, sort, order, whereStr, model.getSearch(), param.toArray()));
+    }
+    
+    @RequestMapping(value = "validuser", method = RequestMethod.GET)
+    @ResponseBody
+    public Object getUserInfoByPid(String pid) throws Exception {
+        return service.getUserInfoByPid(pid);
+    }
+    
+    @RequestMapping(value = "addCard", method = RequestMethod.POST)
+    @ResponseBody
+    public Object insertSpecialJobCard(Special_Job_Card card) throws Exception {
+        return service.insertSpecialJobCard(card);
+    }
+    
+    @RequestMapping(value = "card/{oldcardno}", method = RequestMethod.POST)
+    @ResponseBody
+    public Object updateSpecialJobCard(Special_Job_Card card, @PathVariable String oldcardno) throws Exception {
+        return service.updateSpecialJobCard(card, oldcardno);
+    }
+    
+    @RequestMapping(value = "card/{cardno}", method = RequestMethod.DELETE)
+    @ResponseBody
+    public Object deleteSpecialJobCard(@PathVariable String cardno) throws Exception {
+        return service.deleteSpecialJobCard(cardno);
+    }
+    
+    @RequestMapping(value = "card/{card_no}", method = RequestMethod.GET)
+    @ResponseBody
+    public Object getSpecialJobCardByCardNo(@PathVariable String card_no) throws Exception {
+        return service.getSpecialJobCardByCardNo(card_no);
+    }
+    
+    @RequestMapping(value = "sjtype", method = RequestMethod.GET)
+    @ResponseBody
+    public Object getSpecialJobType(String fcode) throws Exception {
+        return service.getSpecialJobType(fcode);
+    }
+    
+    @RequestMapping(value = "reviewcard", method = RequestMethod.POST)
+    @ResponseBody
+    public Object reviewSpecialJobCard(String cardnos, String reviewdate) throws Exception {
+        return service.reviewSpecialJobCard(cardnos, reviewdate, UsersService.GetCurrentUser().getUsername());
+    }
+    
+    @RequestMapping(value = "importexcel", method = RequestMethod.POST)
+//    @ResponseBody
+    public void upload(HttpServletRequest request, HttpServletResponse response) throws IOException, Exception {
+        PrintWriter out = response.getWriter();
+//        response.setContentType("application/json");
+        Map<Boolean, String> resultMap = new HashMap<>();
+        Special_Job_Card card;
+        MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+        Map<String, MultipartFile> mapLinkList = multipartRequest.getFileMap();
+        MultipartFile file = null;
+        for (String mf : mapLinkList.keySet()) {
+            file = mapLinkList.get(mf);
+        }
+        if (file == null) {
+            resultMap.put(false, "操作失败，excel文件读取失败！");
+        } else {
+            InputStream input = file.getInputStream();
+            Workbook workBook;
+            if (file.getOriginalFilename().contains(".xlsx")) {
+                workBook = new XSSFWorkbook(input);
+            } else {
+                workBook = new HSSFWorkbook(input);
+            }
+            Sheet sheet = workBook.getSheetAt(0);
+            if (sheet != null) {
+                String errRowIndex = "";
+                for (int i = 2; i < sheet.getPhysicalNumberOfRows(); i++) {
+                    card = new Special_Job_Card();
+                    Row row = sheet.getRow(i);
+                    if (hasEmptyValue(row, 9)) {
+                        errRowIndex += (i - 1) + ",";
+                        continue;
+                    }
+                    
+                    Special_Job_Type sjt = getSJTCodeByName(row.getCell(3).toString(), "");
+                    if (sjt == null) {
+                        errRowIndex += (i - 1) + ",";
+                        continue;
+                    }
+                    card.setLbcode(sjt.getCode());
+                    sjt = getSJTCodeByName(row.getCell(4).toString(), sjt.getCode());
+                    if (sjt == null) {
+                        errRowIndex += (i - 1) + ",";
+                        continue;
+                    }
+                    card.setXmcode(sjt.getCode());
+                    String pid = row.getCell(2).toString();
+                    DataModel dm = service.getUserInfoByPid(pid);
+                    EduUser user = (EduUser) dm.getRows();
+                    if (user == null) {
+                        errRowIndex += (i - 1) + ",";
+                        continue;
+                    }
+                    
+                    card.setName(user.getWorkername());
+                    card.setSex(user.getSex());
+                    
+                    card.setCard_no(row.getCell(0).toString());
+                    card.setPid(pid);
+                    card.setCert_no(row.getCell(1).toString());
+                    card.setZylb(row.getCell(3).toString());
+                    card.setZcxm(row.getCell(4).toString());
+                    card.setFirstdate(row.getCell(5).toString());
+                    card.setValid_begin_date(row.getCell(6).toString());
+                    card.setValid_end_date(row.getCell(7).toString());
+                    card.setReviewdate(row.getCell(8).toString());
+                    dm = service.insertSpecialJobCard(card);
+                    if(!dm.getResult())
+                        errRowIndex += (i - 1) + ",";
+                }
+                if (!errRowIndex.equals("")) {
+                    resultMap.put(true, "操作完成<br>其中第[" + errRowIndex.substring(0, errRowIndex.length() - 1) + "]条数据保存失败！<br>请检查导入数据<br>1：是否有空的值；<br>2：卡号是否已经存在；<br>3：用户身份证号是否匹配；<br>4：作业类别和准操项目是否输入错误；");
+                } else {
+                    resultMap.put(true, "操作完成！");
+                }
+                
+            } else {
+                resultMap.put(false, "操作失败，excel中第一页数据获取失败！");
+            }
+        }
+//        return new DataModel().withInfo("1111111111");
+        Boolean key = (Boolean) resultMap.keySet().toArray()[0];
+        if (key) {
+            out.printf(JSON.toJSONString(new DataModel().withInfo(resultMap.get(key))));
+//            return new DataModel().withInfo(resultMap.get(key));
+        } else {
+            out.printf(JSON.toJSONString(new DataModel().withErr(resultMap.get(key))));
+//            return new DataModel().withErr(resultMap.get(key));
+        }
+    }
+    
+    private boolean hasEmptyValue(Row row, int cellLength) {
+        boolean result = false;
+        for (int i = 0; i < cellLength; i++) {            
+            Cell cell = row.getCell(i);            
+            if (cell == null) {
+                result = true;
+                break;
+            }
+        }
+        return result;
+    }
+    
+    private Special_Job_Type getSJTCodeByName(String name, String fcode) {
+        Special_Job_Type _entity = null;
+        for (int i = 0; i < sjtArr.size(); i++) {
+            if (sjtArr.get(i).getName().equals(name) && sjtArr.get(i).getParentcode().equals(fcode)) {
+                _entity = sjtArr.get(i);
+                break;
+            }
+        }
+        return _entity;
+    }
+}
