@@ -9,11 +9,13 @@
 <style type="text/css">
     .doc-table {
         border-collapse: collapse;
-        border-spacing: 0;
+        border-spacing: 0;  
         width: 100%;
         margin-bottom: 1.65em;
     }
 
+    
+    
     .doc-table th, .doc-table td {
         border: 0px solid #8CACBB;
         padding: 0.1em 0.1em;
