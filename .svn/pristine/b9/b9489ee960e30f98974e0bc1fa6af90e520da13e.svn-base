@@ -1,9 +1,0 @@
-jdbc1.driverClassName=com.microsoft.sqlserver.jdbc.SQLServerDriver
-jdbc1.url=jdbc:sqlserver://10.194.5.102;databaseName=ebook
-jdbc1.username=netstudy2016
-jdbc1.password=netstudy@2016
-
-jdbc2.driverClassName=com.microsoft.sqlserver.jdbc.SQLServerDriver
-jdbc2.url=jdbc:sqlserver://10.192.4.141;databaseName=ygpx
-jdbc2.username=wlks
-jdbc2.password=wlks2012
